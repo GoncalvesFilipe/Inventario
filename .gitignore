@@ -1,0 +1,23 @@
+# Ambientes virtuais
+venv/
+.env
+
+# Cache e compilados
+__pycache__/
+*.pyc
+*.pyo
+
+# Banco local
+db.sqlite3
+
+# Arquivos de log
+*.log
+
+# Configurações locais
+*.sqlite3
+*.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
