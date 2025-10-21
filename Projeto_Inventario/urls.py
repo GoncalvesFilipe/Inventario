@@ -7,4 +7,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # PÁGINA INICIAL
     path('', views.index, name='index'),
+    #path('inventarios', views.inventarios, name='inventarios')
 ]

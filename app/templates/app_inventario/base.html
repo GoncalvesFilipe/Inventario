@@ -13,9 +13,9 @@
   <body class="{% block body_class %}{% endblock %}">
     <div class="d-flex flex-column min-vh-100">
       <!-- Navbar -->
-      <nav class="navbar navbar-dark bg-primary fixed-top">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
         <div class="container-fluid">
-          <a class="navbar-brand" href="{% url 'index' %}">Inventário</a>
+          <a class="navbar-brand text-white" href="{% url 'index' %}">Inventário</a>
           <button
             class="navbar-toggler"
             type="button"
@@ -28,27 +28,30 @@
           </button>
 
           <div
-            class="offcanvas offcanvas-end"
+            class="offcanvas offcanvas-end text-bg-primary"
             tabindex="-1"
             id="offcanvasNavbar"
             aria-labelledby="offcanvasNavbarLabel"
           >
             <div class="offcanvas-header">
-              <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+              <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel">
+                Menu
+              </h5>
               <button
                 type="button"
-                class="btn-close"
+                class="btn-close btn-close-white"
                 data-bs-dismiss="offcanvas"
                 aria-label="Close"
               ></button>
             </div>
+
             <div class="offcanvas-body">
               <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                 <li class="nav-item">
-                  <a class="nav-link active" href="#">Home</a>
+                  <a class="nav-link text-white" href="{% url 'index' %}">Início</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">Link</a>
+                  <a class="nav-link text-white" href="#">Inventários</a>
                 </li>
               </ul>
             </div>
@@ -57,12 +60,12 @@
       </nav>
 
       <!-- Conteúdo -->
-      <main class="flex-fill mt-5 pt-4 container">
+      <main class="flex-fill container mt-5 pt-5 mb-5">
         {% block content %}{% endblock %}
       </main>
 
       <!-- Rodapé -->
-      <footer class="bg-primary text-white text-center py-3 fixed-bottom">
+      <footer class="bg-success text-white text-center py-3 fixed-bottom">
         <p class="mb-0">
           &copy; 2025 Sistema de Inventário. Acesso restrito a funcionários
           autorizados.
