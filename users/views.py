@@ -5,9 +5,8 @@ from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 
 def logout_view(request):
-    """Faz um logout no usuário."""
     logout(request)
-    return HttpResponseRedirect(reverse('index'))
+    return HttpResponseRedirect(reverse('login'))
 
 def register(request):
     """Faz o cadatro de um novo usuário."""

@@ -1,0 +1,86 @@
+{% extends "app_inventario/base.html" %}
+
+{% block title %}Cadastro de Usuário{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="bg-white rounded-4 shadow p-5 text-center" style="width: 100%; max-width: 450px;">
+
+        <!-- Título -->
+        <h3 class="fw-bold mb-2 text-uppercase" style="color: #198754;">
+            Cadastro de Usuário
+        </h3>
+        <p class="text-muted mb-4">Preencha os campos abaixo para criar sua conta</p>
+
+        <!-- Mensagem de erro geral -->
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger py-2 small text-start">
+            {% for error in form.non_field_errors %}
+                ⚠️ {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Formulário -->
+        <form method="POST" action="{% url 'register' %}" novalidate>
+            {% csrf_token %}
+
+            <!-- Usuário -->
+            <div class="form-floating mb-3 text-start">
+                <input type="text" name="username" id="username"
+                    value="{{ form.username.value|default_if_none:'' }}"
+                    class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                    placeholder="Usuário" required>
+                <label for="username" style="color: #198754;">Usuário</label>
+                {% if form.username.errors %}
+                    <div class="invalid-feedback">
+                        Informe um nome de usuário válido.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Senha -->
+            <div class="form-floating mb-3 text-start">
+                <input type="password" name="password1" id="password1"
+                    class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                    placeholder="Senha" required>
+                <label for="password1" style="color: #198754;">Senha</label>
+                {% if form.password1.errors %}
+                    <div class="invalid-feedback">
+                        A senha deve ter pelo menos 8 caracteres e não pode ser comum.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Confirmar Senha -->
+            <div class="form-floating mb-4 text-start">
+                <input type="password" name="password2" id="password2"
+                    class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                    placeholder="Confirme a senha" required>
+                <label for="password2" style="color: #198754;">Confirmar Senha</label>
+                {% if form.password2.errors %}
+                    <div class="invalid-feedback">
+                        As senhas não coincidem ou são inválidas.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'index' %}" class="btn btn-outline-success w-50 me-2 rounded-3 py-2">Voltar</a>
+                <button type="submit" class="btn btn-primary w-50 rounded-3 py-2">Registrar</button>
+            </div>
+
+            <input type="hidden" name="next" value="{% url 'index' %}">
+        </form>
+
+        <!-- Link para login -->
+        <p class="mt-4 mb-0 small text-muted">
+            Já possui uma conta?
+            <a href="{% url 'login' %}" class="text-decoration-none fw-semibold text-primary">
+                Faça login aqui
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}
