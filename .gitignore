@@ -1,23 +1,14 @@
-# Ambientes virtuais
+# Bytecode do Python
+__pycache__/
+*.py[cod]
+
+# Banco de dados
+db.sqlite3
+
+# Ambiente virtual
 venv/
 .env
 
-# Cache e compilados
-__pycache__/
-*.pyc
-*.pyo
-
-# Banco local
-db.sqlite3
-
-# Arquivos de log
-*.log
-
-# Configurações locais
-*.sqlite3
-*.vscode/
+# Configurações de IDE
+.vscode/
 .idea/
-
-# Sistema operacional
-.DS_Store
-Thumbs.db
