@@ -1,0 +1,22 @@
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
+from .models import Usuario, Patrimonio
+
+# Página principal do painel
+def admin_dashboard(request):
+    return render(request, "app_inventario/admin_dashboard.html")
+
+# Listagem dinâmica de usuários
+def usuarios_list(request):
+    usuarios = Usuario.objects.all().order_by("nome")
+    return render(request, "app_inventario/partials/usuarios_list.html", {"usuarios": usuarios})
+
+# Listagem dinâmica de patrimônios
+def patrimonios_list(request):
+    patrimonios = Patrimonio.objects.select_related("usuario").all()
+    return render(request, "app_inventario/partials/patrimonio_list.html", {"patrimonios": patrimonios})
+
+# Edição de usuário (carregada via HTMX)
+def usuario_edit(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+    return render(request, "app_inventario/partials/form_usuario.html", {"usuario": usuario})

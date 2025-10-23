@@ -13,6 +13,7 @@
 
 <body class="{% block body_class %}{% endblock %}">
   <div class="d-flex flex-column min-vh-100">
+
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
       <div class="container-fluid">
@@ -22,46 +23,49 @@
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="offcanvas offcanvas-end text-bg-success"" tabindex="-1" id="offcanvasNavbar"
+        <div class="offcanvas offcanvas-end text-bg-success" tabindex="-1" id="offcanvasNavbar"
           aria-labelledby="offcanvasNavbarLabel">
           <div class="offcanvas-header">
-            <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel">
-              Menu
-            </h5>
+            <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel">Menu</h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
               aria-label="Close"></button>
           </div>
 
           <div class="offcanvas-body">
             <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+
+              <!-- Início -->
               <li class="nav-item">
                 <a class="nav-link text-white" href="{% url 'index' %}">Início</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link text-white" href="#">Inventários</a>
-              </li>
-
+              
+              <!-- Painel Administrativo (somente se autenticado) -->
               {% if user.is_authenticated %}
-              <li class="item-nav">
-                <a class="nav-link text-white" href="{% url 'logout' %}">Sair</a>
-              </li>
-              {% else %}
-              <li class="item-nav">
-                <a class="nav-link text-white" href="{% url 'login' %}">Entrar</a>
-              </li>
-              <li class="item-nav">
-                <a class="nav-link text-white" href="{% url 'register' %}">Registrar</a>
+              <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'admin_dashboard' %}">Painel Administrativo</a>
               </li>
               {% endif %}
 
+              <!-- Autenticação -->
+              {% if user.is_authenticated %}
+              <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'logout' %}">Sair</a>
+              </li>
+              {% else %}
+              <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'login' %}">Entrar</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'register' %}">Registrar</a>
+              </li>
+              {% endif %}
             </ul>
-
           </div>
         </div>
       </div>
     </nav>
 
-    <!-- Conteúdo -->
+    <!-- Conteúdo principal -->
     <main class="flex-fill container mt-5 pt-5 mb-5">
       {% block content %}{% endblock %}
     </main>
@@ -69,14 +73,15 @@
     <!-- Rodapé -->
     <footer class="bg-success text-white text-center py-3 fixed-bottom">
       <p class="mb-0">
-        &copy; 2025 Sistema de Inventário. Acesso restrito a funcionários
-        autorizados.
+        &copy; 2025 Sistema de Inventário. Acesso restrito a funcionários autorizados.
       </p>
     </footer>
+
   </div>
 
-  {# Carrega o JS do Bootstrap 5 via django-bootstrap5 #}
+  {# Scripts Bootstrap e HTMX #}
   {% bootstrap_javascript %}
-</body>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 
+</body>
 </html>

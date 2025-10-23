@@ -22,7 +22,7 @@
         {% endif %}
 
         <!-- Formulário -->
-        <form method="POST" action="{% url 'login' %}" novalidate>
+        <form method="POST" novalidate>
             {% csrf_token %}
 
             <!-- Usuário -->
