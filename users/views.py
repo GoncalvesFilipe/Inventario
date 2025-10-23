@@ -7,8 +7,9 @@ from django.contrib import messages
 
 
 def logout_view(request):
+    """Faz um logout do usuário"""
     logout(request)
-    return HttpResponseRedirect(reverse('login'))
+    return HttpResponseRedirect(reverse('index'))
 
 
 def login_view(request):

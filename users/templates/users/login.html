@@ -1,73 +1,63 @@
 {% extends "app_inventario/base.html" %}
+{% load django_bootstrap5 %}
 
 {% block title %}Login de Usuário{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="bg-white rounded-4 shadow p-5 text-center" style="width: 100%; max-width: 450px;">
+<!-- Container que ocupa toda a tela útil -->
+<div class="container-fluid d-flex flex-column justify-content-center align-items-center"
+     style="min-height: calc(100vh - 120px); margin-top: -3rem; margin-bottom: -3rem;">
+     
+  <div class="bg-white rounded-4 shadow p-5 text-center w-100" style="max-width: 420px;">
+    <h3 class="fw-bold mb-2 text-uppercase text-success">Acesso ao Sistema</h3>
+    <p class="text-muted mb-4">Insira suas credenciais para continuar</p>
 
-        <!-- Título -->
-        <h3 class="fw-bold mb-2 text-uppercase" style="color: #198754;">
-            Acesso ao Sistema
-        </h3>
-        <p class="text-muted mb-4">Insira suas credenciais para continuar</p>
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger py-2 small text-start">
+        {% for error in form.non_field_errors %}
+          ⚠️ {{ error }}
+        {% endfor %}
+      </div>
+    {% endif %}
 
-        <!-- Mensagem de erro geral (login inválido, etc.) -->
-        {% if form.non_field_errors %}
-        <div class="alert alert-danger py-2 small text-start">
-            {% for error in form.non_field_errors %}
-                ⚠️ {{ error }}
-            {% endfor %}
-        </div>
+    <form method="POST" action="{% url 'login' %}" novalidate>
+      {% csrf_token %}
+
+      <div class="form-floating mb-3 text-start">
+        <input type="text" name="username" id="username"
+               value="{{ form.username.value|default_if_none:'' }}"
+               class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+               placeholder="Usuário" required>
+        <label for="username" class="text-success">Usuário</label>
+        {% if form.username.errors %}
+          <div class="invalid-feedback">Informe um nome de usuário válido.</div>
         {% endif %}
+      </div>
 
-        <!-- Formulário -->
-        <form method="POST" novalidate>
-            {% csrf_token %}
+      <div class="form-floating mb-4 text-start">
+        <input type="password" name="password" id="password"
+               class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+               placeholder="Senha" required>
+        <label for="password" class="text-success">Senha</label>
+        {% if form.password.errors %}
+          <div class="invalid-feedback">Senha incorreta. Tente novamente.</div>
+        {% endif %}
+      </div>
 
-            <!-- Usuário -->
-            <div class="form-floating mb-3 text-start">
-                <input type="text" name="username" id="username"
-                    value="{{ form.username.value|default_if_none:'' }}"
-                    class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-                    placeholder="Usuário" required>
-                <label for="username" style="color: #198754;">Usuário</label>
-                {% if form.username.errors %}
-                    <div class="invalid-feedback">
-                        Informe um nome de usuário válido.
-                    </div>
-                {% endif %}
-            </div>
+      <div class="d-flex justify-content-between">
+        <a href="{% url 'index' %}" class="btn btn-outline-success w-50 me-2 rounded-3 py-2">Voltar</a>
+        <button type="submit" class="btn btn-primary w-50 rounded-3 py-2">Entrar</button>
+      </div>
 
-            <!-- Senha -->
-            <div class="form-floating mb-4 text-start">
-                <input type="password" name="password" id="password"
-                    class="form-control {% if form.password.errors %}is-invalid{% endif %}"
-                    placeholder="Senha" required>
-                <label for="password" style="color: #198754;">Senha</label>
-                {% if form.password.errors %}
-                    <div class="invalid-feedback">
-                        Senha incorreta. Tente novamente.
-                    </div>
-                {% endif %}
-            </div>
+      <input type="hidden" name="next" value="{{ next|default:'' }}">
+    </form>
 
-            <!-- Botões -->
-            <div class="d-flex justify-content-between">
-                <a href="{% url 'index' %}" class="btn btn-outline-success w-50 me-2 rounded-3 py-2">Voltar</a>
-                <button type="submit" class="btn btn-primary w-50 rounded-3 py-2">Entrar</button>
-            </div>
-
-            <input type="hidden" name="next" value="{{ next|default:'' }}">
-        </form>
-
-        <!-- Link para registro -->
-        <p class="mt-4 mb-0 small text-muted">
-            Ainda não possui uma conta?
-            <a href="{% url 'register' %}" class="text-decoration-none fw-semibold text-primary">
-                Cadastre-se aqui
-            </a>
-        </p>
-    </div>
+    <p class="mt-4 mb-0 small text-muted">
+      Ainda não possui uma conta?
+      <a href="{% url 'register' %}" class="text-decoration-none fw-semibold text-primary">
+        Cadastre-se aqui
+      </a>
+    </p>
+  </div>
 </div>
 {% endblock %}
