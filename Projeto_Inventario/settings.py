@@ -124,12 +124,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# URL login page 
-LOGIN_URL = '/users/login'
-
 # Bootstrap5
 BOOTSTRAP5 = {
   "required_css_class": "required",
 }
 
-#LOGIN_REDIRECT_URL = 'index'
