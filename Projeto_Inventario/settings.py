@@ -132,3 +132,4 @@ BOOTSTRAP5 = {
   "required_css_class": "required",
 }
 
+#LOGIN_REDIRECT_URL = 'index'
