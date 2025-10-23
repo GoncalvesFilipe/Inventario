@@ -43,3 +43,4 @@ class Patrimonio(models.Model):
   
   def str(self):
     return f"{self.patrimonio} ({self.usuario.nome})"
+  

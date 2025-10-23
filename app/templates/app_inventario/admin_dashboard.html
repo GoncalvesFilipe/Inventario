@@ -10,28 +10,39 @@
   <div class="row">
     <!-- Menu lateral -->
     <div class="col-md-3 mb-3">
-      <div class="list-group shadow-sm">
-        <button class="list-group-item list-group-item-action active" 
-                hx-get="{% url 'usuarios_list' %}" 
-                hx-target="#conteudo-admin" 
-                hx-swap="innerHTML">
+      <div id="menu-admin" class="list-group shadow-sm">
+        <!-- Usuários -->
+        <button 
+          class="list-group-item list-group-item-action"
+          hx-get="{% url 'usuarios_list' %}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML">
           👤 Usuários
         </button>
-        <button class="list-group-item list-group-item-action"
-                hx-get="{% url 'patrimonios_list' %}" 
-                hx-target="#conteudo-admin" 
-                hx-swap="innerHTML">
+
+        <!-- Patrimônios -->
+        <button 
+          class="list-group-item list-group-item-action"
+          hx-get="{% url 'patrimonios_list' %}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML">
           💼 Patrimônios
         </button>
       </div>
     </div>
 
-    <!-- Área dinâmica -->
+    <!-- Área dinâmica do painel -->
     <div class="col-md-9">
       <div id="conteudo-admin" class="border rounded-3 p-3 bg-light shadow-sm">
-        <p class="text-muted text-center">Selecione uma opção no menu para começar.</p>
+        <p class="text-muted text-center mb-0">
+          Selecione uma opção no menu para começar.
+        </p>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Importa o JS do painel administrativo (se houver lógica extra) -->
+<script src="{% static 'app/js/admin_dashboard.js' %}"></script>
 {% endblock %}
+  
