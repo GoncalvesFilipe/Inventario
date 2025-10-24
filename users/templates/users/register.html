@@ -5,74 +5,70 @@
 
 {% block content %}
 <div class="container-fluid d-flex flex-column justify-content-center align-items-center"
-     style="min-height: calc(100vh - 120px); margin-top: -3rem; margin-bottom: -3rem;">
-     
+  style="min-height: calc(100vh - 120px); margin-top: -3rem; margin-bottom: -3rem;">
+
   <div class="bg-white rounded-4 shadow p-5 text-center w-100" style="max-width: 420px;">
     <h3 class="fw-bold mb-2 text-uppercase text-success">Crie sua Conta</h3>
     <p class="text-muted mb-4">Preencha os dados para se cadastrar no sistema</p>
 
     {% if form.non_field_errors %}
-      <div class="alert alert-danger py-2 small text-start">
-        {% for error in form.non_field_errors %}
-          ⚠️ {{ error }}
-        {% endfor %}
-      </div>
+    <div class="alert alert-danger py-2 small text-start">
+      {% for error in form.non_field_errors %}
+      ⚠️ {{ error }}
+      {% endfor %}
+    </div>
     {% endif %}
 
     <form method="POST" action="{% url 'register' %}" novalidate>
       {% csrf_token %}
 
       <div class="form-floating mb-3 text-start">
-        <input type="text" name="username" id="id_username"
-               value="{{ form.username.value|default_if_none:'' }}"
-               class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-               placeholder="Usuário" required>
+        <input type="text" name="username" id="id_username" value="{{ form.username.value|default_if_none:'' }}"
+          class="form-control {% if form.username.errors %}is-invalid{% endif %}" placeholder="Usuário" required>
         <label for="id_username" class="text-success">Usuário</label>
         {% if form.username.errors %}
-          <div class="invalid-feedback">
-            {% for error in form.username.errors %}{{ error }}{% endfor %}
-          </div>
+        <div class="invalid-feedback">
+          {% for error in form.username.errors %}{{ error }}{% endfor %}
+        </div>
         {% endif %}
       </div>
 
       {% if form.email %}
       <div class="form-floating mb-3 text-start">
-        <input type="email" name="email" id="id_email"
-               value="{{ form.email.value|default_if_none:'' }}"
-               class="form-control {% if form.email.errors %}is-invalid{% endif %}"
-               placeholder="E-mail" required>
+        <input type="email" name="email" id="id_email" value="{{ form.email.value|default_if_none:'' }}"
+          class="form-control {% if form.email.errors %}is-invalid{% endif %}" placeholder="E-mail" required>
         <label for="id_email" class="text-success">E-mail</label>
         {% if form.email.errors %}
-          <div class="invalid-feedback">
-            {% for error in form.email.errors %}{{ error }}{% endfor %}
-          </div>
+        <div class="invalid-feedback">
+          {% for error in form.email.errors %}{{ error }}{% endfor %}
+        </div>
         {% endif %}
       </div>
       {% endif %}
 
       <div class="form-floating mb-3 text-start">
-        <input type="password" name="password" id="id_password1"
-               class="form-control {% if form.password.errors %}is-invalid{% endif %}"
-               placeholder="Senha" required>
+        <input type="password" name="password1" id="id_password1"
+          class="form-control {% if form.password1.errors %}is-invalid{% endif %}" placeholder="Senha" required>
         <label for="id_password1" class="text-success">Senha</label>
-        {% if form.password.errors %}
-          <div class="invalid-feedback">
-            {% for error in form.password.errors %}{{ error }}{% endfor %}
-          </div>
+        {% if form.password1.errors %}
+        <div class="invalid-feedback">
+          {% for error in form.password1.errors %}{{ error }}{% endfor %}
+        </div>
         {% endif %}
       </div>
 
       <div class="form-floating mb-4 text-start">
         <input type="password" name="password2" id="id_password2"
-               class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
-               placeholder="Confirme a Senha" required>
+          class="form-control {% if form.password2.errors %}is-invalid{% endif %}" placeholder="Confirme a Senha"
+          required>
         <label for="id_password2" class="text-success">Confirme a Senha</label>
         {% if form.password2.errors %}
-          <div class="invalid-feedback">
-            {% for error in form.password2.errors %}{{ error }}{% endfor %}
-          </div>
+        <div class="invalid-feedback">
+          {% for error in form.password2.errors %}{{ error }}{% endfor %}
+        </div>
         {% endif %}
       </div>
+
 
       <div class="d-flex justify-content-between">
         <a href="{% url 'index' %}" class="btn btn-outline-success w-50 me-2 rounded-3 py-2">Voltar</a>
