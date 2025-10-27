@@ -8,4 +8,5 @@ urlpatterns = [
     path('usuarios/', views_admin.usuarios_list, name='usuarios_list'),
     path('patrimonios/', views_admin.patrimonios_list, name='patrimonios_list'),
     path('usuario/<int:pk>/editar/', views_admin.usuario_edit, name='usuario_edit'),
+    path('usuario/<int:pk>/excluir/', views_admin.usuario_delete, name='usuario_delete'),
 ]

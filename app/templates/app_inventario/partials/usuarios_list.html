@@ -23,6 +23,12 @@
                 hx-swap="innerHTML">
           Editar
         </button>
+        <button class="btn btn-sm btn-outline-primary"
+                hx-get="{% url 'usuario_delete' u.pk %}"
+                hx-target="#conteudo-admin"
+                hx-swap="innerHTML">
+          Excluír
+        </button>
       </td>
     </tr>
     {% empty %}

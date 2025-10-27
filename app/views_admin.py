@@ -20,3 +20,15 @@ def patrimonios_list(request):
 def usuario_edit(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
     return render(request, "app_inventario/partials/form_usuario.html", {"usuario": usuario})
+
+# Exclusão de usuário (carregada via HTMX)
+def usuario_delete(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    if request.method == 'POST':
+        usuario.delete()
+        usuarios = Usuario.objects.all().order_by("nome")
+        return render(request, "app_inventario/partials/usuarios_list.html", {"usuarios": usuarios})
+
+    return render(request, "app_inventario/partials/confirm_delete_usuario.html", {"usuario": usuario})
+
