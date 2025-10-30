@@ -19,6 +19,16 @@ def patrimonios_list(request):
 # Edição de usuário (carregada via HTMX)
 def usuario_edit(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
+
+    if request.method == "POST":
+        usuario.nome = request.POST.get("nome")
+        usuario.funcao = request.POST.get("funcao")
+        usuario.telefone = request.POST.get("telefone")
+        usuario.save()
+
+        usuarios = Usuario.objects.all().order_by("nome")
+        return render(request, "app_inventario/partials/usuarios_list.html", {"usuarios": usuarios})
+
     return render(request, "app_inventario/partials/form_usuario.html", {"usuario": usuario})
 
 # Exclusão de usuário (carregada via HTMX)

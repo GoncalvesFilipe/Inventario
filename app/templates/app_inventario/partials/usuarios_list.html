@@ -17,23 +17,30 @@
       <td>{{ u.funcao }}</td>
       <td>{{ u.telefone }}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary"
-                hx-get="{% url 'usuario_edit' u.pk %}"
-                hx-target="#conteudo-admin"
-                hx-swap="innerHTML">
+        <button
+          class="btn btn-sm btn-outline-primary"
+          hx-get="{% url 'usuario_edit' u.pk %}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML"
+        >
           Editar
         </button>
-        <button class="btn btn-sm btn-outline-primary"
-                hx-get="{% url 'usuario_delete' u.pk %}"
-                hx-target="#conteudo-admin"
-                hx-swap="innerHTML">
+
+        <button
+          class="btn btn-sm btn-outline-primary"
+          hx-get="{% url 'usuario_delete' u.pk %}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML"
+        >
           Excluír
         </button>
       </td>
     </tr>
     {% empty %}
     <tr>
-      <td colspan="5" class="text-center text-muted">Nenhum usuário cadastrado.</td>
+      <td colspan="5" class="text-center text-muted">
+        Nenhum usuário cadastrado.
+      </td>
     </tr>
     {% endfor %}
   </tbody>

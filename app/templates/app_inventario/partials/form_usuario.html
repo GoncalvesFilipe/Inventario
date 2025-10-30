@@ -1,17 +1,27 @@
 <h4 class="text-success mb-3 fw-semibold">Editar Usuário</h4>
-<form method="post">
+
+<form 
+  method="post"
+  hx-post="{% url 'usuario_edit' usuario.pk %}"
+  hx-target="#conteudo-admin"
+  hx-swap="innerHTML">
+  
   {% csrf_token %}
+  
   <div class="mb-3">
     <label class="form-label">Nome</label>
     <input type="text" name="nome" value="{{ usuario.nome }}" class="form-control">
   </div>
+
   <div class="mb-3">
     <label class="form-label">Função</label>
     <input type="text" name="funcao" value="{{ usuario.funcao }}" class="form-control">
   </div>
+
   <div class="mb-3">
     <label class="form-label">Telefone</label>
     <input type="text" name="telefone" value="{{ usuario.telefone }}" class="form-control">
   </div>
+
   <button type="submit" class="btn btn-success">Salvar</button>
 </form>
