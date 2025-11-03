@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404
+from .forms import PatrimonioForm
 from django.http import HttpResponse
+from django.template.loader import render_to_string
 from .models import Usuario, Patrimonio
 
 # Página principal do painel
@@ -11,11 +13,37 @@ def usuarios_list(request):
     usuarios = Usuario.objects.all().order_by("nome")
     return render(request, "app_inventario/partials/usuarios_list.html", {"usuarios": usuarios})
 
-# Listagem dinâmica de patrimônios
+# Listagem de patrimônios
 def patrimonios_list(request):
     patrimonios = Patrimonio.objects.select_related("usuario").all()
     return render(request, "app_inventario/partials/patrimonio_list.html", {"patrimonios": patrimonios})
 
+# Exibir formulário de novo patrimônio
+def patrimonio_form(request):
+    form = PatrimonioForm()
+    return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
+
+# Adicionar patrimônio
+def patrimonio_add(request):
+    if request.method == "POST":
+        form = PatrimonioForm(request.POST)
+        if form.is_valid():
+            form.save()
+
+            patrimonios = Patrimonio.objects.select_related("usuario").all()
+            tabela_html = render_to_string(
+                "app_inventario/partials/tabela_patrimonios.html",
+                {"patrimonios": patrimonios},
+                request=request
+            )
+
+            html_final = (
+                tabela_html
+                + '<div id="form-patrimonio-container" hx-swap-oob="true"></div>'
+            )
+
+            return HttpResponse(html_final)
+        
 # Edição de usuário (carregada via HTMX)
 def usuario_edit(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)

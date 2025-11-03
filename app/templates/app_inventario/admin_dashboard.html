@@ -11,7 +11,6 @@
     <!-- Menu lateral -->
     <div class="col-md-3 mb-3">
       <div id="menu-admin" class="list-group shadow-sm">
-        <!-- Usuários -->
         <button 
           class="list-group-item list-group-item-action"
           hx-get="{% url 'usuarios_list' %}"
@@ -20,7 +19,6 @@
           👤 Usuários
         </button>
 
-        <!-- Patrimônios -->
         <button 
           class="list-group-item list-group-item-action"
           hx-get="{% url 'patrimonios_list' %}"
@@ -31,7 +29,7 @@
       </div>
     </div>
 
-    <!-- Área dinâmica do painel -->
+    <!-- Área dinâmica -->
     <div class="col-md-9">
       <div id="conteudo-admin" class="border rounded-3 p-3 bg-light shadow-sm">
         <p class="text-muted text-center mb-0">
@@ -41,8 +39,4 @@
     </div>
   </div>
 </div>
-
-<!-- Importa o JS do painel administrativo (se houver lógica extra) -->
-<script src="{% static 'app/js/admin_dashboard.js' %}"></script>
 {% endblock %}
-  
