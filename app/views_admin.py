@@ -42,3 +42,22 @@ def usuario_delete(request, pk):
 
     return render(request, "app_inventario/partials/confirm_delete_usuario.html", {"usuario": usuario})
 
+# Adição de novo usuário (carregada via HTMX)
+def usuario_add(request):
+    if request.method == "POST":
+        matricula = request.POST.get("matricula")
+        nome = request.POST.get("nome")
+        funcao = request.POST.get("funcao")
+        telefone = request.POST.get("telefone")
+
+        Usuario.objects.create(
+            matricula=matricula,
+            nome=nome,
+            funcao=funcao,
+            telefone=telefone,
+        )
+
+        usuarios = Usuario.objects.all().order_by("nome")
+        return render(request, "app_inventario/partials/usuarios_list.html", {"usuarios": usuarios})
+
+    return render(request, "app_inventario/partials/form_usuario_add.html")
