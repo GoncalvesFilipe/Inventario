@@ -11,7 +11,7 @@ class Usuario(models.Model):
   data_atualizacao = models.DateTimeField(auto_now=True)
   ano_atuacao = models.PositiveBigIntegerField(verbose_name='Ano de atuação', unique=True, blank=True, null=True)
 
-  def _str_(self):
+  def __str__(self):
         return f"{self.nome} ({self.matricula})"
   
 
@@ -39,8 +39,8 @@ class Patrimonio(models.Model):
   data_inventario = models.DateField(blank=True, null=True)
 
   # Relacionamento 1 para 1 com Usuario
-  usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='patrimonio')
+  usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='patrimonio')
   
-  def str(self):
+  def __str__(self):
     return f"{self.patrimonio} ({self.usuario.nome})"
   

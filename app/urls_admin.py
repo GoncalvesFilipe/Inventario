@@ -7,6 +7,8 @@ urlpatterns = [
     # Rotas HTMX
     path('usuarios/', views_admin.usuarios_list, name='usuarios_list'),
     path('patrimonios/', views_admin.patrimonios_list, name='patrimonios_list'),
+    path('patrimonio/form/', views_admin.patrimonio_form, name='patrimonio_form'),
+    path('patrimonio/add/', views_admin.patrimonio_add, name='patrimonio_add'),
     path('usuario/<int:pk>/editar/', views_admin.usuario_edit, name='usuario_edit'),
     path('usuario/<int:pk>/excluir/', views_admin.usuario_delete, name='usuario_delete'),
 ]
