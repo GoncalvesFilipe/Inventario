@@ -1,6 +1,16 @@
-<h4 class="text-success mb-3 fw-semibold">Lista de Usuários</h4>
-<table class="table table-hover align-middle">
-  <thead class="table-success">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold">Lista de Usuários</h5>
+  <button 
+    class="btn btn-success btn-sm"
+    hx-get="{% url 'usuario_add' %}"
+    hx-target="#conteudo-admin"
+    hx-swap="innerHTML">
+    ➕ Adicionar Usuário
+  </button>
+</div>
+
+<table class="table table-hover">
+  <thead>
     <tr>
       <th>Matrícula</th>
       <th>Nome</th>
@@ -10,31 +20,25 @@
     </tr>
   </thead>
   <tbody>
-    {% for u in usuarios %}
-    <tr>
-      <td>{{ u.matricula }}</td>
-      <td>{{ u.nome }}</td>
-      <td>{{ u.funcao }}</td>
-      <td>{{ u.telefone }}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary"
-                hx-get="{% url 'usuario_edit' u.pk %}"
-                hx-target="#conteudo-admin"
-                hx-swap="innerHTML">
-          Editar
-        </button>
-        <button class="btn btn-sm btn-outline-primary"
-                hx-get="{% url 'usuario_delete' u.pk %}"
-                hx-target="#conteudo-admin"
-                hx-swap="innerHTML">
-          Excluír
-        </button>
-      </td>
-    </tr>
+    {% for usuario in usuarios %}
+      <tr>
+        <td>{{ usuario.matricula }}</td>
+        <td>{{ usuario.nome }}</td>
+        <td>{{ usuario.funcao }}</td>
+        <td>{{ usuario.telefone }}</td>
+        <td>
+          <button hx-get="{% url 'usuario_edit' usuario.pk %}"
+                  hx-target="#conteudo-admin"
+                  hx-swap="innerHTML"
+                  class="btn btn-warning btn-sm">Editar</button>
+          <button hx-get="{% url 'usuario_delete' usuario.pk %}"
+                  hx-target="#conteudo-admin"
+                  hx-swap="innerHTML"
+                  class="btn btn-danger btn-sm">Excluir</button>
+        </td>
+      </tr>
     {% empty %}
-    <tr>
-      <td colspan="5" class="text-center text-muted">Nenhum usuário cadastrado.</td>
-    </tr>
+      <tr><td colspan="5" class="text-center text-muted">Nenhum usuário cadastrado.</td></tr>
     {% endfor %}
   </tbody>
 </table>
