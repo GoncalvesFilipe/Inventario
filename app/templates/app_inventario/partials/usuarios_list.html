@@ -30,11 +30,11 @@
           <button hx-get="{% url 'usuario_edit' usuario.pk %}"
                   hx-target="#conteudo-admin"
                   hx-swap="innerHTML"
-                  class="btn btn-warning btn-sm">✏️</button>
+                  class="btn btn-warning btn-sm">Editar</button>
           <button hx-get="{% url 'usuario_delete' usuario.pk %}"
                   hx-target="#conteudo-admin"
                   hx-swap="innerHTML"
-                  class="btn btn-danger btn-sm">🗑️</button>
+                  class="btn btn-danger btn-sm">Excluir</button>
         </td>
       </tr>
     {% empty %}
