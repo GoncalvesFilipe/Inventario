@@ -1,14 +1,22 @@
-<div class="card shadow-sm border-success">
-  <div class="card-body">
-    <h5 class="card-title text-success mb-3">Adicionar Patrimônio</h5>
+{% load django_bootstrap5 %}
 
-    <form hx-post="{% url 'patrimonio_add' %}" hx-target="#tabela-patrimonios" hx-swap="outerHTML" class="p-2">
-      {% csrf_token %}
-      {{ form.as_p }}
-
-      <div class="text-end">
-        <button type="submit" class="btn btn-success">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
+<form
+  {% if patrimonio and patrimonio.pk %}
+    hx-post="{% url 'editar_patrimonio' patrimonio.pk %}"
+  {% else %}
+    hx-post="{% url 'patrimonio_form' %}"
+  {% endif %}
+  hx-target="#tabela-patrimonios"
+  hx-swap="outerHTML"
+  class="needs-validation"
+  novalidate>
+  
+  {% csrf_token %}
+  {% bootstrap_form form %}
+  
+  <button type="submit" class="btn btn-success">Salvar</button>
+  <button type="button" class="btn btn-secondary" 
+          onclick="document.querySelector('#form-patrimonio-container').innerHTML = ''">
+    Cancelar
+  </button>
+</form>

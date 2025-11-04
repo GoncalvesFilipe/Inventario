@@ -20,8 +20,17 @@ def patrimonios_list(request):
 
 # Exibir formulário de novo patrimônio
 def patrimonio_form(request):
-    form = PatrimonioForm()
+    if request.method == "POST":
+        form = PatrimonioForm(request.POST)
+        if form.is_valid():
+            form.save()
+            patrimonios = Patrimonio.objects.all()
+            return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
+    else:
+        form = PatrimonioForm()
+    
     return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
+
 
 # Adicionar patrimônio
 def patrimonio_add(request):
@@ -44,7 +53,25 @@ def patrimonio_add(request):
 
             return HttpResponse(html_final)
         
-# Edição de usuário (carregada via HTMX)
+# Editar patrimônio
+def patrimonio_edit(request, pk):
+    patrimonio = get_object_or_404(Patrimonio, pk=pk)
+    if request.method == "POST":
+        form = PatrimonioForm(request.POST, instance=patrimonio)
+        if form.is_valid():
+            form.save()
+            patrimonios = Patrimonio.objects.all()
+            return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
+    else:
+        form = PatrimonioForm(instance=patrimonio)
+
+    return render(
+        request,
+        "app_inventario/partials/form_patrimonio.html",
+        {"form": form, "patrimonio": patrimonio}
+    )
+        
+# Edição de usuário
 def usuario_edit(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
 
@@ -59,7 +86,7 @@ def usuario_edit(request, pk):
 
     return render(request, "app_inventario/partials/form_usuario.html", {"usuario": usuario})
 
-# Exclusão de usuário (carregada via HTMX)
+# Exclusão de usuário
 def usuario_delete(request, pk):
     usuario = get_object_or_404(Usuario, pk=pk)
 
@@ -70,7 +97,7 @@ def usuario_delete(request, pk):
 
     return render(request, "app_inventario/partials/confirm_delete_usuario.html", {"usuario": usuario})
 
-# Adição de novo usuário (carregada via HTMX)
+# Adição de novo usuário
 def usuario_add(request):
     if request.method == "POST":
         matricula = request.POST.get("matricula")

@@ -11,6 +11,7 @@ urlpatterns = [
     # Patrimônio
     path('patrimonio/form/', views_admin.patrimonio_form, name='patrimonio_form'),
     path('patrimonio/add/', views_admin.patrimonio_add, name='patrimonio_add'),
+    path('patrimonio/<int:pk>/editar/', views_admin.patrimonio_edit, name='editar_patrimonio'),
 
     # Usuários
     path('usuario/adicionar/', views_admin.usuario_add, name='usuario_add'),
