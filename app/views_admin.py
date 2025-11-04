@@ -42,7 +42,8 @@ def patrimonio_add(request):
                 + '<div id="form-patrimonio-container" hx-swap-oob="true"></div>'
             )
 
-            return HttpResponse(html_final)
+            return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
+
         
 # Edição de usuário (carregada via HTMX)
 def usuario_edit(request, pk):
