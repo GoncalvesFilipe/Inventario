@@ -1,14 +1,30 @@
-# Bytecode do Python
+# Bytecode do Python (gerado automaticamente, não precisa versionar)
 __pycache__/
 *.py[cod]
 
-# Banco de dados
+# Banco de dados local (cada dev pode ter o seu)
 db.sqlite3
 
-# Ambiente virtual
+# Ambiente virtual e variáveis de ambiente
 venv/
 .env
 
-# Configurações de IDE
+# Configurações de IDE (arquivos locais)
 .vscode/
 .idea/
+
+# Logs do Django
+*.log
+
+# Arquivos temporários e caches de testes
+*.pot
+*.pyc
+*.pyo
+*.mo
+*.log
+*.pid
+*.sqlite3
+*.bak
+*.swp
+*.swo
+*.DS_Store
