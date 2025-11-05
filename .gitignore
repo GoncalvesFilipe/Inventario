@@ -1,20 +1,25 @@
-# Python
+# Bytecode do Python
 __pycache__/
 *.py[cod]
 *.pyo
 
-# Virtualenv
+# Ambiente virtual
 venv/
 ENV/
 
 # Django stuff
-*.log
 staticfiles/
 media/
+
+# Banco de dados
 db.sqlite3
 
-# VSCode
+# Logs e arquivos temporários
+*.log
+
+# Configurações de IDE
 .vscode/
+.idea/
 
 # OS
 Thumbs.db
