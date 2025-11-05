@@ -18,23 +18,33 @@
       <td>{{ p.usuario.nome }}</td>
       <td>{{ p.get_situacao_display }}</td>
       <td>
-
         {% if p.pk %}
-        <button class="btn btn-sm btn-outline-primary"
-                hx-get="{% url 'editar_patrimonio' p.pk %}"
-                hx-target="#form-patrimonio-container"
-                hx-swap="innerHTML"
-                hx-push-url="false">
-          Editar
-        </button>
-        {% endif %}
+        <div class="d-flex flex-row flex-sm-column flex-md-row gap-2 justify-content-start">
+          <!-- Botão Editar -->
+          <button class="btn btn-sm btn-outline-primary" hx-get="{% url 'editar_patrimonio' p.pk %}"
+            hx-target="#form-patrimonio-container" hx-swap="innerHTML" hx-push-url="false">
+            Editar
+          </button>
 
+          <!-- Botão Excluir -->
+          <button class="btn btn-sm btn-outline-danger" hx-delete="{% url 'excluir_patrimonio' p.pk %}"
+            hx-confirm="Tem certeza que deseja excluir este patrimônio?" hx-target="closest tr"
+            hx-swap="outerHTML remove">
+            Excluir
+          </button>
+        </div>
+        {% endif %}
       </td>
     </tr>
     {% empty %}
     <tr>
-      <td colspan="6" class="text-center text-muted">Nenhum patrimônio encontrado.</td>
+      <td colspan="6" class="text-center text-muted">
+        Nenhum patrimônio encontrado.
+      </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
+<!-- Garante que o container para o formulário existe -->
+<div id="form-patrimonio-container" class="mt-4"></div>

@@ -15,7 +15,7 @@
 <div id="tabela-patrimonios"
      hx-get="{% url 'patrimonios_list' %}"
      hx-trigger="refreshList from:body"
-     hx-target="#tabela-patrimonios"
+     hx-target="this"
      hx-swap="innerHTML">
   {% include "app_inventario/partials/tabela_patrimonios.html" %}
 </div>
