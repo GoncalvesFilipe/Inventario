@@ -1,2 +1,0 @@
-# Inventario
- inventory project
