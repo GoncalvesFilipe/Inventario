@@ -12,3 +12,6 @@ venv/
 # Configurações de IDE
 .vscode/
 .idea/
+
+# Logs e arquivos temporários
+*.log
