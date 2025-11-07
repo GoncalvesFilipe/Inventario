@@ -1,22 +1,24 @@
-{% load django_bootstrap5 %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+  <div class="card shadow-lg border-0 rounded-4" style="max-width: 600px; width: 100%;">
+    <div class="card-body">
+      <h5 class="card-title text-success mb-4 text-center">
+        {% if patrimonio %}Editar Patrimônio{% else %}Novo Patrimônio{% endif %}
+      </h5>
 
-<form
-  {% if patrimonio and patrimonio.pk %}
-    hx-post="{% url 'editar_patrimonio' patrimonio.pk %}"
-  {% else %}
-    hx-post="{% url 'patrimonio_form' %}"
-  {% endif %}
-  hx-target="#tabela-patrimonios"
-  hx-swap="outerHTML"
-  class="needs-validation"
-  novalidate>
-  
-  {% csrf_token %}
-  {% bootstrap_form form %}
-  
-  <button type="submit" class="btn btn-success">Salvar</button>
-  <button type="button" class="btn btn-secondary" 
-          onclick="document.querySelector('#form-patrimonio-container').innerHTML = ''">
-    Cancelar
-  </button>
-</form>
+      <form
+        hx-post="{% if patrimonio %}{% url 'editar_patrimonio' patrimonio.pk %}{% else %}{% url 'patrimonio_add' %}{% endif %}"
+        hx-target="#conteudo-admin" hx-swap="innerHTML" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="d-flex justify-content-between mt-4">
+          <button type="submit" class="btn btn-success w-50 me-2">Salvar</button>
+          <button type="button" class="btn btn-secondary w-50" hx-get="{% url 'patrimonios_list' %}"
+            hx-target="#conteudo-admin" hx-swap="innerHTML">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

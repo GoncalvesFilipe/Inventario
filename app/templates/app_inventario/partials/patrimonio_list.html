@@ -1,40 +1,28 @@
+{% extends "app_inventario/base.html" %}
 {% load static %}
-<h4 class="text-success mb-3 fw-semibold">Lista de Patrimônios</h4>
 
-<!-- Botão para exibir o formulário de adição -->
-<button 
-  class="btn btn-success mb-3"
-  hx-get="{% url 'patrimonio_form' %}"
-  hx-target="#form-patrimonio-container"
-  hx-swap="innerHTML"
-  hx-push-url="false">
-  Adicionar Patrimônio
-</button>
-
-<!-- Container da tabela -->
-<div id="tabela-patrimonios"
-     hx-get="{% url 'patrimonios_list' %}"
-     hx-trigger="refreshList from:body"
-     hx-target="#tabela-patrimonios"
-     hx-swap="innerHTML">
-  {% include "app_inventario/partials/tabela_patrimonios.html" %}
+{% block content %}
+<div class="mb-3">
+  <h5 class="fw-bold">Lista de Patrimônios</h5>
+  <button 
+    class="btn btn-success btn-sm mt-2"
+    hx-get="{% url 'patrimonio_form' %}"
+    hx-target="#conteudo-admin"
+    hx-swap="innerHTML">
+    Adicionar Patrimônio
+  </button>
 </div>
 
-<!-- Container do formulário -->
-<div id="form-patrimonio-container" class="mt-4"></div>
+<!-- Contêiner do formulário HTMX -->
+<div id="form-patrimonio-container" class="mb-3"></div>
 
-<script>
-  if (!window._htmxHandlersInitialized) {
-    document.body.addEventListener("htmx:afterRequest", function (event) {
-      const url = event.detail?.xhr?.responseURL || "";
+<!-- Contêiner da tabela -->
+<div id="tabela-patrimonios">
+  {% include 'app_inventario/partials/tabela_patrimonios.html' %}
+</div>
 
-      if (url.includes("editar_patrimonio") || url.includes("patrimonio_form")) {
-        const formContainer = document.querySelector("#form-patrimonio-container");
-        if (formContainer) formContainer.innerHTML = "";
-        htmx.trigger("body", "refreshList");
-      }
-    });
-
-    window._htmxHandlersInitialized = true;
-  }
-</script>
+<!-- CSRF oculto para HTMX -->
+<form id="csrf-form" style="display: none;">
+  {% csrf_token %}
+</form>
+{% endblock %}
