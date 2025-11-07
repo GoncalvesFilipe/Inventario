@@ -16,5 +16,5 @@ urlpatterns = [
     path('register/', users_views.register, name='register'),
     
     path('painel/', include('app.urls_admin')),
-
 ]
+
