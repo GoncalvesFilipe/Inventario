@@ -28,7 +28,7 @@
     document.body.addEventListener("htmx:afterRequest", function (event) {
       const url = event.detail?.xhr?.responseURL || "";
 
-      if (url.includes("editar_patrimonio") || url.includes("patrimonio_form")) {
+      if (url.includes("patrimonio_edit") || url.includes("patrimonio_form")) {
         const formContainer = document.querySelector("#form-patrimonio-container");
         if (formContainer) formContainer.innerHTML = "";
         htmx.trigger("body", "refreshList");

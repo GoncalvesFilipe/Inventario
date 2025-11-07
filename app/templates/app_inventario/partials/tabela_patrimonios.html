@@ -21,7 +21,7 @@
 
         {% if p.pk %}
         <button class="btn btn-sm btn-outline-primary"
-                hx-get="{% url 'editar_patrimonio' p.pk %}"
+                hx-get="{% url 'patrimonio_edit' p.pk %}"
                 hx-target="#form-patrimonio-container"
                 hx-swap="innerHTML"
                 hx-push-url="false">
