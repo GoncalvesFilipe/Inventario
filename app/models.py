@@ -11,12 +11,11 @@ class Usuario(models.Model):
   data_cadastro = models.DateField(auto_now_add=True)
   data_atualizacao = models.DateTimeField(auto_now=True)
   ano_atuacao = models.PositiveBigIntegerField(verbose_name='Ano de atuação', unique=True, blank=True, null=True)
-  owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+  owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
   def __str__(self):
         return f"{self.nome} ({self.matricula})"
   
-
 class Patrimonio(models.Model):
 
   STATUS_CHOICES = [

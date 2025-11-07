@@ -127,11 +127,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Bootstrap5
 BOOTSTRAP5 = {
-  "required_css_class": "required",
+    "required_css_class": "required",
 }
 
-# Login/logout redirects
+# URL login page 
+LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = 'index'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'users:login'
+

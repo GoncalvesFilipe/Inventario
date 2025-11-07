@@ -1,9 +1,14 @@
-from django.urls import path
-from django.contrib.auth import views as auth_views
-from . import views
+from django.contrib import admin
+from django.urls import path, include
+from app import views as app_views
 
 urlpatterns = [
-    path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('register/', views.register, name='register'),
+    path('admin/', admin.site.urls),
+    path('', app_views.index, name='index'),
+
+    # Rotas de autenticação
+    path('users/', include('users.urls')),  # ✅ inclui todas as rotas de login/logout/register
+
+    # Painel administrativo
+    path('painel/', include('app.urls_admin')),
 ]
