@@ -100,7 +100,6 @@
     // Recarrega a tabela quando houver atualização
     document.body.addEventListener("htmx:afterSwap", function (evt) {
       if (evt.detail.target.id === "tabela-patrimonios") {
-        // Atualiza automaticamente o conteúdo da lista após salvar
         console.log("Tabela de patrimônios atualizada com sucesso!");
       }
     });
@@ -109,9 +108,18 @@
   {% block extra_js %}
   {% load static %}
   <script src="{% static 'app/js/admin_dashboard.js' %}"></script>
-  
-{% endblock %}
+  {% endblock %}
+
+  <!-- Formulário CSRF oculto + integração com HTMX -->
+  <form id="csrf-form" style="display: none;">
+    {% csrf_token %}
+  </form>
+  <script>
+    document.body.addEventListener('htmx:configRequest', (event) => {
+      const token = document.querySelector('#csrf-form input[name="csrfmiddlewaretoken"]').value;
+      event.detail.headers['X-CSRFToken'] = token;
+    });
+  </script>
 
 </body>
-
 </html>

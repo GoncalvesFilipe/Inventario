@@ -1,0 +1,21 @@
+<div class="card border-danger">
+  <div class="card-body">
+    <h5 class="card-title text-danger">Confirmar exclusão</h5>
+    <p class="card-text">
+      Tem certeza de que deseja excluir o patrimônio: <strong>{{ patrimonio.descricao }}</strong>?
+    </p>
+
+    <div class="d-flex gap-2 flex-column flex-sm-row">
+      <button class="btn btn-danger w-100" hx-post="{% url 'excluir_patrimonio' patrimonio.pk %}"
+        hx-target="#conteudo-admin" hx-swap="innerHTML">
+        Confirmar
+      </button>
+
+      <button class="btn btn-secondary w-100" hx-get="{% url 'patrimonios_list' %}" hx-target="#conteudo-admin"
+        hx-swap="innerHTML">
+        Cancelar
+      </button>
+
+    </div>
+  </div>
+</div>

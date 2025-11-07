@@ -1,4 +1,9 @@
-{% load django_bootstrap5 %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+  <div class="card shadow-lg border-0 rounded-4" style="max-width: 600px; width: 100%;">
+    <div class="card-body">
+      <h5 class="card-title text-success mb-4 text-center">
+        {% if patrimonio %}Editar Patrimônio{% else %}Novo Patrimônio{% endif %}
+      </h5>
 
 <form
   {% if patrimonio and patrimonio.pk %}

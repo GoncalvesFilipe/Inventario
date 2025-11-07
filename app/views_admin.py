@@ -2,14 +2,17 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from .forms import PatrimonioForm
 from .models import Usuario, Patrimonio
+
 
 # Página principal do painel
 @login_required
 def admin_dashboard(request):
     """Exibe o painel administrativo do usuário logado."""
     return render(request, "app_inventario/admin_dashboard.html")
+
 
 # Listagem de usuários (somente do dono logado)
 @login_required
@@ -18,12 +21,14 @@ def usuarios_list(request):
     usuarios = Usuario.objects.filter(owner=request.user).order_by("nome")
     return render(request, "app_inventario/partials/usuarios_list.html", {"usuarios": usuarios})
 
+
 # Listagem de patrimônios (somente dos usuários do dono logado)
 @login_required
 def patrimonios_list(request):
     """Lista os patrimônios vinculados aos usuários do dono logado."""
     patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
-    return render(request, "app_inventario/partials/patrimonio_list.html", {"patrimonios": patrimonios})
+    return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
+
 
 # Formulário de novo patrimônio
 @login_required
@@ -33,18 +38,22 @@ def patrimonio_form(request):
         form = PatrimonioForm(request.POST)
         if form.is_valid():
             patrimonio = form.save(commit=False)
-
-            # 🔒 Garante que o patrimônio pertence a um usuário do dono logado
             if patrimonio.usuario.owner != request.user:
                 raise Http404
-
             patrimonio.save()
-            patrimonios = Patrimonio.objects.filter(usuario__owner=request.user)
-            return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
+
+            patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
+            tabela_html = render_to_string(
+                "app_inventario/partials/tabela_patrimonios.html",
+                {"patrimonios": patrimonios},
+                request=request
+            )
+            return HttpResponse(tabela_html)
     else:
         form = PatrimonioForm()
-    
+
     return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
+
 
 # Adicionar patrimônio
 @login_required
@@ -54,31 +63,22 @@ def patrimonio_add(request):
         form = PatrimonioForm(request.POST)
         if form.is_valid():
             patrimonio = form.save(commit=False)
-
-            # 🔒 Verifica se o usuário dono do patrimônio pertence ao usuário logado
             if patrimonio.usuario.owner != request.user:
                 raise Http404
-
             patrimonio.save()
 
             patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
-            tabela_html = render_to_string(
-                "app_inventario/partials/tabela_patrimonios.html",
-                {"patrimonios": patrimonios},
-                request=request
-            )
-
-            return HttpResponse(tabela_html)
+            return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
 
     form = PatrimonioForm()
     return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
+
 
 # Editar patrimônio
 @login_required
 def patrimonio_edit(request, pk):
     """Edita um patrimônio existente, apenas se pertencer ao dono logado."""
     patrimonio = get_object_or_404(Patrimonio, pk=pk)
-
     if patrimonio.usuario.owner != request.user:
         raise Http404
 
@@ -86,16 +86,36 @@ def patrimonio_edit(request, pk):
         form = PatrimonioForm(request.POST, instance=patrimonio)
         if form.is_valid():
             form.save()
-            patrimonios = Patrimonio.objects.filter(usuario__owner=request.user)
+            patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
             return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
     else:
         form = PatrimonioForm(instance=patrimonio)
 
-    return render(
-        request,
-        "app_inventario/partials/form_patrimonio.html",
-        {"form": form, "patrimonio": patrimonio}
-    )
+    return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form, "patrimonio": patrimonio})
+
+
+# Confirma exclusão de patrimônio
+@login_required
+def confirmar_exclusao_patrimonio(request, pk):
+    """Exibe o modal de confirmação antes de excluir o patrimônio."""
+    patrimonio = get_object_or_404(Patrimonio, pk=pk, usuario__owner=request.user)
+    return render(request, "app_inventario/partials/confirmar_exclusao_patrimonio.html", {"patrimonio": patrimonio})
+
+
+# Excluir patrimônio
+@login_required
+@csrf_exempt
+def excluir_patrimonio(request, pk):
+    """Exclui um patrimônio via HTMX."""
+    if request.method in ["POST", "DELETE"]:
+        patrimonio = get_object_or_404(Patrimonio, pk=pk, usuario__owner=request.user)
+        patrimonio.delete()
+
+        patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
+        return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
+
+    return HttpResponse(status=405)
+
 
 # Editar usuário
 @login_required
@@ -114,18 +134,20 @@ def usuario_edit(request, pk):
 
     return render(request, "app_inventario/partials/form_usuario.html", {"usuario": usuario})
 
+
 # Excluir usuário
 @login_required
 def usuario_delete(request, pk):
     """Exclui um usuário pertencente ao dono logado."""
     usuario = get_object_or_404(Usuario, pk=pk, owner=request.user)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         usuario.delete()
         usuarios = Usuario.objects.filter(owner=request.user).order_by("nome")
         return render(request, "app_inventario/partials/usuarios_list.html", {"usuarios": usuarios})
 
     return render(request, "app_inventario/partials/confirm_delete_usuario.html", {"usuario": usuario})
+
 
 # Adicionar novo usuário
 @login_required
