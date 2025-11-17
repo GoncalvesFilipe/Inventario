@@ -27,21 +27,29 @@ def usuarios_list(request):
 def patrimonios_list(request):
     """Lista os patrimônios vinculados aos usuários do dono logado."""
     patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
-    return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
+    return render(request, "app_inventario/partials/patrimonio_list.html", {"patrimonios": patrimonios})
 
 
 # Formulário de novo patrimônio
 @login_required
 def patrimonio_form(request):
-    """Exibe e processa o formulário de novo patrimônio."""
+    """Renderiza o formulário para adicionar um novo patrimônio"""
     if request.method == "POST":
         form = PatrimonioForm(request.POST)
         if form.is_valid():
             patrimonio = form.save(commit=False)
-            if patrimonio.usuario.owner != request.user:
-                raise Http404
+
+            # Garante que o usuário logado será associado ao patrimônio
+            try:
+                usuario_logado = Usuario.objects.get(owner=request.user)
+            except Usuario.DoesNotExist:
+                # Cria o vínculo automaticamente se ainda não existir
+                usuario_logado = Usuario.objects.create(nome=request.user.username, owner=request.user)
+
+            patrimonio.usuario = usuario_logado
             patrimonio.save()
 
+            # Atualiza a lista após salvar
             patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
             tabela_html = render_to_string(
                 "app_inventario/partials/tabela_patrimonios.html",
@@ -49,27 +57,41 @@ def patrimonio_form(request):
                 request=request
             )
             return HttpResponse(tabela_html)
+
     else:
         form = PatrimonioForm()
 
     return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
 
-
 # Adicionar patrimônio
 @login_required
 def patrimonio_add(request):
-    """Adiciona um novo patrimônio, garantindo que pertence ao dono logado."""
+    """Salva um novo patrimônio via HTMX"""
     if request.method == "POST":
         form = PatrimonioForm(request.POST)
         if form.is_valid():
             patrimonio = form.save(commit=False)
-            if patrimonio.usuario.owner != request.user:
-                raise Http404
+            patrimonio.usuario = Usuario.objects.get(owner=request.user)
             patrimonio.save()
 
+            # Atualiza lista de patrimônios após salvar
             patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
-            return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
+            tabela_html = render_to_string(
+                "app_inventario/partials/tabela_patrimonios.html",
+                {"patrimonios": patrimonios},
+                request=request
+            )
+            return HttpResponse(tabela_html)
+        else:
+            # Retorna o mesmo form com erros (HTMX mantém o modal aberto)
+            html = render_to_string(
+                "app_inventario/partials/form_patrimonio.html",
+                {"form": form},
+                request=request
+            )
+            return HttpResponse(html)
 
+    # Requisição GET: renderiza o form vazio no modal
     form = PatrimonioForm()
     return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
 
@@ -79,6 +101,8 @@ def patrimonio_add(request):
 def patrimonio_edit(request, pk):
     """Edita um patrimônio existente, apenas se pertencer ao dono logado."""
     patrimonio = get_object_or_404(Patrimonio, pk=pk)
+
+    # Bloqueia acesso de outro usuário
     if patrimonio.usuario.owner != request.user:
         raise Http404
 
@@ -86,11 +110,26 @@ def patrimonio_edit(request, pk):
         form = PatrimonioForm(request.POST, instance=patrimonio)
         if form.is_valid():
             form.save()
-            patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
-            return render(request, "app_inventario/partials/tabela_patrimonios.html", {"patrimonios": patrimonios})
-    else:
-        form = PatrimonioForm(instance=patrimonio)
 
+            # Atualiza a tabela após editar
+            patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
+            tabela_html = render_to_string(
+                "app_inventario/partials/tabela_patrimonios.html",
+                {"patrimonios": patrimonios},
+                request=request
+            )
+            return HttpResponse(tabela_html)
+        else:
+            # Retorna o form com erros
+            html = render_to_string(
+                "app_inventario/partials/form_patrimonio.html",
+                {"form": form, "patrimonio": patrimonio},
+                request=request
+            )
+            return HttpResponse(html)
+
+    # Requisição GET: exibe o form preenchido
+    form = PatrimonioForm(instance=patrimonio)
     return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form, "patrimonio": patrimonio})
 
 
@@ -164,7 +203,7 @@ def usuario_add(request):
             nome=nome,
             funcao=funcao,
             telefone=telefone,
-            owner=request.user  # 🔒 Garante vínculo com o usuário logado
+            owner=request.user  # Garante vínculo com o usuário logado
         )
 
         usuarios = Usuario.objects.filter(owner=request.user).order_by("nome")

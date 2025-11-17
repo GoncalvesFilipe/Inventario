@@ -1,20 +1,28 @@
-{% extends "app_inventario/base.html" %}
 {% load static %}
 
 {% block content %}
 <div class="mb-3">
-  <h5 class="fw-bold">Lista de Patrimônios</h5>
-  <button 
-    class="btn btn-success btn-sm mt-2"
-    hx-get="{% url 'patrimonio_form' %}"
-    hx-target="#form-patrimonio-container"
-    hx-swap="innerHTML">
+  <h5 class="fw-bold text-success">Lista de Patrimônios</h5>
+  <button class="btn btn-success btn-sm mt-2" hx-get="{% url 'patrimonio_form' %}" hx-target="#modal-patrimonio-body"
+    hx-trigger="click" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
     Adicionar Patrimônio
   </button>
 </div>
 
-<!-- Contêiner do formulário HTMX -->
-<div id="form-patrimonio-container" class="mb-3"></div>
+<!-- Modal Bootstrap -->
+<div class="modal fade" id="modalPatrimonio" tabindex="-1" aria-labelledby="modalPatrimonioLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title text-success fw-semibold" id="modalPatrimonioLabel">Novo Patrimônio</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body" id="modal-patrimonio-body">
+        <!-- O formulário será carregado aqui via HTMX -->
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Contêiner da tabela -->
 <div id="tabela-patrimonios">
@@ -22,17 +30,19 @@
 </div>
 
 <script>
-  if (!window._htmxHandlersInitialized) {
-    document.body.addEventListener("htmx:afterRequest", (event) => {
-      const url = event.detail.pathInfo.path;
-      if (url.includes("patrimonio_edit") || url.includes("patrimonio_form")) {
-        const formContainer = document.querySelector("#form-patrimonio-container");
-        if (formContainer) formContainer.innerHTML = "";
-        htmx.trigger("body", "refreshList");
-      }
-    });
+  // Fecha o modal automaticamente quando a tabela de patrimônios for atualizada
+  document.body.addEventListener("htmx:afterSwap", (event) => {
+    if (event.target.id === "tabela-patrimonios") {
+      const modalEl = document.getElementById("modalPatrimonio");
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) modal.hide();
+    }
+  });
 
-    window._htmxHandlersInitialized = true;
-  }
+  // Limpa o conteúdo do modal ao fechar
+  document.getElementById("modalPatrimonio").addEventListener("hidden.bs.modal", () => {
+    document.getElementById("modal-patrimonio-body").innerHTML = "";
+  });
 </script>
+
 {% endblock %}
