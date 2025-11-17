@@ -81,20 +81,23 @@ def patrimonio_add(request):
                 {"patrimonios": patrimonios},
                 request=request
             )
-            return HttpResponse(tabela_html)
-        else:
-            # Retorna o mesmo form com erros (HTMX mantém o modal aberto)
-            html = render_to_string(
-                "app_inventario/partials/form_patrimonio.html",
-                {"form": form},
-                request=request
-            )
-            return HttpResponse(html)
 
-    # Requisição GET: renderiza o form vazio no modal
+            return HttpResponse(
+                tabela_html,
+                headers={"HX-Trigger": "patrimonio-atualizado"}
+            )
+
+        # Form inválido → retorna erro dentro do modal
+        html = render_to_string(
+            "app_inventario/partials/form_patrimonio.html",
+            {"form": form},
+            request=request
+        )
+        return HttpResponse(html)
+
+    # GET exibe formulário vazio
     form = PatrimonioForm()
     return render(request, "app_inventario/partials/form_patrimonio.html", {"form": form})
-
 
 # Editar patrimônio
 @login_required
@@ -102,7 +105,7 @@ def patrimonio_edit(request, pk):
     """Edita um patrimônio existente, apenas se pertencer ao dono logado."""
     patrimonio = get_object_or_404(Patrimonio, pk=pk)
 
-    # Bloqueia acesso de outro usuário
+    # Bloqueia acesso indevido
     if patrimonio.usuario.owner != request.user:
         raise Http404
 
@@ -111,22 +114,34 @@ def patrimonio_edit(request, pk):
         if form.is_valid():
             form.save()
 
-            # Atualiza a tabela após editar
+            # Atualiza tabela pós edição
             patrimonios = Patrimonio.objects.select_related("usuario").filter(usuario__owner=request.user)
             tabela_html = render_to_string(
                 "app_inventario/partials/tabela_patrimonios.html",
                 {"patrimonios": patrimonios},
                 request=request
             )
-            return HttpResponse(tabela_html)
-        else:
-            # Retorna o form com erros
-            html = render_to_string(
-                "app_inventario/partials/form_patrimonio.html",
-                {"form": form, "patrimonio": patrimonio},
-                request=request
+
+            return HttpResponse(
+                tabela_html,
+                headers={"HX-Trigger": "patrimonio-atualizado"}
             )
-            return HttpResponse(html)
+
+        # Erros → retorna form novamente no modal
+        html = render_to_string(
+            "app_inventario/partials/form_patrimonio.html",
+            {"form": form, "patrimonio": patrimonio},
+            request=request
+        )
+        return HttpResponse(html)
+
+    # GET exibe formulário preenchido
+    form = PatrimonioForm(instance=patrimonio)
+    return render(
+        request,
+        "app_inventario/partials/form_patrimonio.html",
+        {"form": form, "patrimonio": patrimonio}
+    )
 
     # Requisição GET: exibe o form preenchido
     form = PatrimonioForm(instance=patrimonio)

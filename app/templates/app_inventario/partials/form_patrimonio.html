@@ -7,16 +7,11 @@
         {% if patrimonio %}Editar Patrimônio{% else %}Novo Patrimônio{% endif %}
       </h5>
 
-      <form
-        {% if patrimonio and patrimonio.pk %}
-          hx-post="{% url 'patrimonio_edit' patrimonio.pk %}"
-        {% else %}
-          hx-post="{% url 'patrimonio_add' %}"
-        {% endif %}
-        hx-target="#tabela-patrimonios"
-        hx-swap="outerHTML"
-        class="needs-validation"
-        novalidate>
+      <form {% if patrimonio and patrimonio.pk %} hx-post="{% url 'patrimonio_edit' patrimonio.pk %}" {% else %}
+        hx-post="{% url 'patrimonio_add' %}" {% endif %} hx-target="#lista-patrimonios" hx-swap="outerHTML"
+        hx-trigger="submit"
+        hx-on::after-request="if(event.detail.successful) htmx.trigger('#modalPatrimonio', 'fecharModal')"
+        class="needs-validation" novalidate>
 
         {% csrf_token %}
         {% bootstrap_form form layout="vertical" %}

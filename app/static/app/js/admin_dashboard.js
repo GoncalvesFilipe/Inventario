@@ -1,12 +1,13 @@
 // admin_dashboard.js
 document.addEventListener("DOMContentLoaded", function () {
-  const menuButtons = document.querySelectorAll("#menu-admin button");
+  const menuButtonsContainer = document.querySelector("#menu-admin");
+  if (!menuButtonsContainer) return; // Evita erros se não existir
+
+  const menuButtons = menuButtonsContainer.querySelectorAll("button");
 
   menuButtons.forEach(button => {
     button.addEventListener("click", function () {
-      // Remove a classe 'active' de todos
       menuButtons.forEach(btn => btn.classList.remove("active"));
-      // Adiciona 'active' apenas ao botão clicado
       this.classList.add("active");
     });
   });

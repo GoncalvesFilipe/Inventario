@@ -3,8 +3,13 @@
 {% block content %}
 <div class="mb-3">
   <h5 class="fw-bold text-success">Lista de Patrimônios</h5>
-  <button class="btn btn-success btn-sm mt-2" hx-get="{% url 'patrimonio_form' %}" hx-target="#modal-patrimonio-body"
-    hx-trigger="click" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
+  <button class="btn btn-success btn-sm mt-2"
+    hx-get="{% url 'patrimonio_add' %}"
+    hx-target="#modal-patrimonio-body"
+    hx-trigger="click"
+    hx-swap="innerHTML"
+    data-bs-toggle="modal"
+    data-bs-target="#modalPatrimonio">
     Adicionar Patrimônio
   </button>
 </div>
@@ -18,7 +23,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
       <div class="modal-body" id="modal-patrimonio-body">
-        <!-- O formulário será carregado aqui via HTMX -->
+        <!-- Formulário inserido via HTMX -->
       </div>
     </div>
   </div>
@@ -28,21 +33,5 @@
 <div id="tabela-patrimonios">
   {% include 'app_inventario/partials/tabela_patrimonios.html' %}
 </div>
-
-<script>
-  // Fecha o modal automaticamente quando a tabela de patrimônios for atualizada
-  document.body.addEventListener("htmx:afterSwap", (event) => {
-    if (event.target.id === "tabela-patrimonios") {
-      const modalEl = document.getElementById("modalPatrimonio");
-      const modal = bootstrap.Modal.getInstance(modalEl);
-      if (modal) modal.hide();
-    }
-  });
-
-  // Limpa o conteúdo do modal ao fechar
-  document.getElementById("modalPatrimonio").addEventListener("hidden.bs.modal", () => {
-    document.getElementById("modal-patrimonio-body").innerHTML = "";
-  });
-</script>
 
 {% endblock %}
