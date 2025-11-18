@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'app',
     'users',
     'django_bootstrap5',
+    "widget_tweaks",
 ]
 
 MIDDLEWARE = [

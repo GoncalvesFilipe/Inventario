@@ -1,0 +1,16 @@
+<div class="mb-3">
+  <h5 class="fw-bold text-success">Lista de Patrimônios</h5>
+
+  <button class="btn btn-success btn-sm mt-2"
+    hx-get="{% url 'patrimonio_add' %}"
+    hx-target="#modal-patrimonio-body"
+    hx-swap="innerHTML"
+    data-bs-toggle="modal"
+    data-bs-target="#modalPatrimonio">
+    Adicionar Patrimônio
+  </button>
+</div>
+
+<div id="tabela-patrimonios">
+  {% include 'app_inventario/partials/tabela_patrimonios.html' %}
+</div>

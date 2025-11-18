@@ -1,30 +1,36 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-class Usuario(models.Model):
-  matricula = models.CharField(max_length=20, verbose_name='Matricula', unique=True)
-  nome = models.CharField(max_length=100)
+
+class Inventariante(models.Model):
+  """Informações adicionais do inventariante."""
+  user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="inventariante")
+  matricula = models.CharField(max_length=20, verbose_name='Matrícula', unique=True)
   funcao = models.CharField(max_length=50)
   telefone = models.CharField(max_length=15)
   email = models.EmailField(blank=True, null=True)
   presidente = models.BooleanField(default=True)
   data_cadastro = models.DateField(auto_now_add=True)
   data_atualizacao = models.DateTimeField(auto_now=True)
-  ano_atuacao = models.PositiveBigIntegerField(verbose_name='Ano de atuação', unique=True, blank=True, null=True)
-  owner = models.ForeignKey(User, on_delete=models.CASCADE)
+  ano_atuacao = models.PositiveBigIntegerField(
+    verbose_name='Ano de atuação',
+    unique=True,
+    blank=True,
+    null=True
+  )
 
   def __str__(self):
-        return f"{self.nome} ({self.matricula})"
+    return f"{self.user.get_full_name() or self.user.username} ({self.matricula})"
   
 class Patrimonio(models.Model):
-
+  
   STATUS_CHOICES = [
-        ('localizado', 'Localizado'),
-        ('nao_localizado', 'Não Localizado'),
-        ('calamidade', 'Perda por Calamidade'),
-    ]
+    ('localizado', 'Localizado'),
+    ('nao_localizado', 'Não Localizado'),
+    ('calamidade', 'Perda por Calamidade'),
+  ]
 
-  patrimonio = models.IntegerField('Patrimonio', unique=True)
+  patrimonio = models.IntegerField('Patrimônio', unique=True)
   descricao = models.TextField(blank=True, null=True)
   valor = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
   conta_contabil = models.CharField(max_length=50, blank=True, null=True)
@@ -39,9 +45,12 @@ class Patrimonio(models.Model):
   observacoes = models.TextField(blank=True, null=True)
   data_inventario = models.DateField(blank=True, null=True)
 
-  # Relacionamento 1 para 1 com Usuario
-  usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='patrimonio')
-  
+  # O patrimônio pertence a um Inventariante
+  inventariante = models.ForeignKey(
+    Inventariante,
+    on_delete=models.CASCADE,
+    related_name='patrimonios'
+  )
+
   def __str__(self):
-    return f"{self.patrimonio} ({self.usuario.nome})"
-  
+    return f"{self.patrimonio} ({self.inventariante.user.get_full_name() or self.inventariante.user.username})"

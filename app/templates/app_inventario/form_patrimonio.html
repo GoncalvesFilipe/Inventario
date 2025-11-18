@@ -1,0 +1,66 @@
+{% load form_filters %}
+
+<div class="modal-header">
+  <h5 class="modal-title text-success fw-semibold">Novo Patrimônio</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger">
+    {{ form.non_field_errors }}
+  </div>
+  {% endif %}
+
+  <form method="post" hx-post="{% url 'patrimonio_add' %}" hx-target="#conteudo-admin" hx-swap="innerHTML" class="p-1">
+    {% csrf_token %}
+
+    {% for field in form %}
+    <div class="mb-3">
+
+      <label class="form-label fw-semibold" for="{{ field.id_for_label }}">
+        {{ field.label }}
+      </label>
+
+      {% if field.field.widget.input_type == "checkbox" %}
+
+      <div class="form-check">
+        {{ field|add_class:"form-check-input" }}
+        <label class="form-check-label" for="{{ field.id_for_label }}">
+          {{ field.help_text }}
+        </label>
+      </div>
+
+      {% else %}
+
+      {% if field.errors %}
+      {{ field|add_class:"form-control is-invalid" }}
+      <div class="invalid-feedback">
+        {{ field.errors.as_text|slice:"2:" }}
+      </div>
+      {% else %}
+      {{ field|add_class:"form-control"|add_placeholder:field.label }}
+      {% endif %}
+
+      {% if field.help_text %}
+      <div class="form-text">{{ field.help_text }}</div>
+      {% endif %}
+
+      {% endif %}
+
+    </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-end mt-4 gap-2">
+      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+        Cancelar
+      </button>
+
+      <button class="btn btn-success px-4" type="submit">
+        Salvar
+      </button>
+    </div>
+
+  </form>
+</div>

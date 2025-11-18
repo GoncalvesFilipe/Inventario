@@ -8,15 +8,17 @@
   <h2 class="text-success text-center mb-4 fw-bold">Painel Administrativo</h2>
 
   <div class="row">
+
     <!-- Menu lateral -->
     <div class="col-md-3 mb-3">
       <div id="menu-admin" class="list-group shadow-sm">
+
         <button 
           class="list-group-item list-group-item-action"
-          hx-get="{% url 'usuarios_list' %}"
+          hx-get="{% url 'inventariantes_list' %}"
           hx-target="#conteudo-admin"
           hx-swap="innerHTML">
-          👤 Usuários
+          👤 Inventariantes
         </button>
 
         <button 
@@ -26,6 +28,7 @@
           hx-swap="innerHTML">
           💼 Patrimônios
         </button>
+
       </div>
     </div>
 
@@ -37,14 +40,19 @@
         </p>
       </div>
     </div>
+
   </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-  <!-- JS do painel administrativo -->
-  <script src="{% static 'app/js/admin_dashboard.js' %}"></script>
+<!-- MODAL GLOBAL – SEMPRE disponível -->
+<div class="modal fade" id="modalPatrimonio" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div id="modal-patrimonio-body">
+        <!-- Conteúdo do modal via HTMX -->
+      </div>
+    </div>
+  </div>
+</div>
 
-  <!-- JS específico do módulo Patrimônio -->
-  <script src="{% static 'app/js/patrimonio_list.js' %}"></script>
 {% endblock %}

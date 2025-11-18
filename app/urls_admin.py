@@ -2,22 +2,23 @@ from django.urls import path
 from . import views_admin
 
 urlpatterns = [
+    # Dashboard
     path('admin-dashboard/', views_admin.admin_dashboard, name='admin_dashboard'),
 
-    # Rotas HTMX
-    path('usuarios/', views_admin.usuarios_list, name='usuarios_list'),
-    path('patrimonios/', views_admin.patrimonios_list, name='patrimonios_list'),
+    # Listagens HTMX
+    path('inventariantes/', views_admin.inventariantes_list, name='inventariantes_list'),
+    path('patrimonios/', views_admin.patrimonio_list, name='patrimonio_list'),
 
     # Patrimônio
-    path('patrimonios/', views_admin.patrimonios_list, name='patrimonio_list'),
+    path('patrimonio/list/', views_admin.patrimonio_list, name='patrimonio_list'),
     path('patrimonio/form/', views_admin.patrimonio_form, name='patrimonio_form'),
     path('patrimonio/add/', views_admin.patrimonio_add, name='patrimonio_add'),
     path('patrimonio/<int:pk>/editar/', views_admin.patrimonio_edit, name='patrimonio_edit'),
     path('patrimonio/<int:pk>/confirmar-exclusao/', views_admin.confirmar_exclusao_patrimonio, name='confirmar_exclusao_patrimonio'),
     path('patrimonio/<int:pk>/excluir/', views_admin.excluir_patrimonio, name='excluir_patrimonio'),
 
-    # Usuários
-    path('usuario/adicionar/', views_admin.usuario_add, name='usuario_add'),
-    path('usuario/<int:pk>/editar/', views_admin.usuario_edit, name='usuario_edit'),
-    path('usuario/<int:pk>/excluir/', views_admin.usuario_delete, name='usuario_delete'),
+    # Inventariante
+    path('inventariante/adicionar/', views_admin.inventariante_add, name='inventariante_add'),
+    path('inventariante/<int:pk>/editar/', views_admin.inventariante_edit, name='inventariante_edit'),
+    path('inventariante/<int:pk>/excluir/', views_admin.inventariante_delete, name='inventariante_delete'),
 ]

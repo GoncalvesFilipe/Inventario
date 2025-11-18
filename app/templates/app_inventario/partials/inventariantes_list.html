@@ -1,0 +1,60 @@
+<div class="mb-3">
+  <h5 class="fw-bold">Inventariante</h5>
+
+  <button class="btn btn-success btn-sm mt-2"
+          hx-get="{% url 'inventariante_add' %}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML">
+    Adicionar Inventariante
+  </button>
+</div>
+
+<table class="table table-hover align-middle">
+  <thead>
+    <tr>
+      <th>Matrícula</th>
+      <th>Nome</th>
+      <th>Função</th>
+      <th>Telefone</th>
+      <th>Email</th>
+      <th>Ano Atuação</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for inv in usuarios %}
+    <tr>
+      <td>{{ inv.matricula }}</td>
+      <td>{{ inv.user.get_full_name|default:inv.user.username }}</td>
+      <td>{{ inv.funcao }}</td>
+      <td>{{ inv.telefone }}</td>
+      <td>{{ inv.email }}</td>
+      <td>{{ inv.ano_atuacao }}</td>
+
+      <td>
+        <!-- EDITAR -->
+        <button hx-get="{% url 'inventariante_edit' inv.pk %}"
+                hx-target="#conteudo-admin"
+                hx-swap="innerHTML"
+                class="btn btn-outline-primary btn-sm me-1">
+          Editar
+        </button>
+
+        <!-- EXCLUIR -->
+        <button hx-get="{% url 'inventariante_delete' inv.pk %}"
+                hx-target="#conteudo-admin"
+                hx-swap="innerHTML"
+                class="btn btn-outline-danger btn-sm">
+          Excluir
+        </button>
+      </td>
+    </tr>
+
+    {% empty %}
+    <tr>
+      <td colspan="7" class="text-center text-muted">Nenhum inventariante cadastrado.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
