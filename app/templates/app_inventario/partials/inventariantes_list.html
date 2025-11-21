@@ -1,10 +1,8 @@
 <div class="mb-3">
   <h5 class="fw-bold">Inventariante</h5>
 
-  <button class="btn btn-success btn-sm mt-2"
-          hx-get="{% url 'inventariante_add' %}"
-          hx-target="#conteudo-admin"
-          hx-swap="innerHTML">
+  <button class="btn btn-success btn-sm mt-2" hx-get="{% url 'inventariante_add' %}" hx-target="#conteudo-admin"
+    hx-swap="innerHTML">
     Adicionar Inventariante
   </button>
 </div>
@@ -34,18 +32,14 @@
 
       <td>
         <!-- EDITAR -->
-        <button hx-get="{% url 'inventariante_edit' inv.pk %}"
-                hx-target="#conteudo-admin"
-                hx-swap="innerHTML"
-                class="btn btn-outline-primary btn-sm me-1">
+        <button hx-get="{% url 'inventariante_edit' inv.pk %}" hx-target="#conteudo-admin" hx-swap="innerHTML"
+          class="btn btn-outline-primary btn-sm me-1">
           Editar
         </button>
 
         <!-- EXCLUIR -->
-        <button hx-get="{% url 'inventariante_delete' inv.pk %}"
-                hx-target="#conteudo-admin"
-                hx-swap="innerHTML"
-                class="btn btn-outline-danger btn-sm">
+        <button hx-get="{% url 'inventariante_delete' inv.pk %}" hx-target="#conteudo-admin" hx-swap="innerHTML"
+          class="btn btn-outline-danger btn-sm">
           Excluir
         </button>
       </td>
