@@ -53,36 +53,33 @@ class PatrimonioForm(forms.ModelForm):
     class Meta:
         model = Patrimonio
         fields = [
-            'patrimonio',
-            'descricao',
-            'valor',
-            'conta_contabil',
-            'setor',
-            'empenho',
-            'fornecedor',
-            'numero_documento',
-            'data_documento',
-            'data_ateste',
-            'dependencia',
-            'situacao',
-            'observacoes',
-            'data_inventario',
-            'inventariante',
+            "patrimonio", "descricao", "valor", "conta_contabil",
+            "setor", "empenho", "fornecedor", "numero_documento",
+            "data_documento", "data_ateste", "dependencia",
+            "situacao", "observacoes", "data_inventario",
+            "inventariante",
         ]
-        labels = {
-            'patrimonio': 'Número do Patrimônio',
-            'descricao': 'Descrição',
-            'valor': 'Valor',
-            'conta_contabil': 'Conta Contábil',
-            'setor': 'Setor',
-            'empenho': 'Empenho',
-            'fornecedor': 'Fornecedor',
-            'numero_documento': 'Nº do Documento',
-            'data_documento': 'Data do Documento',
-            'data_ateste': 'Data do Ateste',
-            'dependencia': 'Dependência',
-            'situacao': 'Situação',
-            'observacoes': 'Observações',
-            'data_inventario': 'Data do Inventário',
-            'inventariante': 'Inventariante Responsável',
+
+        widgets = {
+            "data_documento": forms.DateInput(attrs={"type": "date"}),
+            "data_ateste": forms.DateInput(attrs={"type": "date"}),
+            "data_inventario": forms.DateInput(attrs={"type": "date"}),
         }
+
+    def __init__(self, *args, user=None, **kwargs):
+        """
+        - Filtra o campo inventariante para exibir apenas o inventariante do usuário logado
+        - Impede edição desse campo deixando ele fixo
+        """
+        super().__init__(*args, **kwargs)
+
+        if user:
+            try:
+                inventariante = Inventariante.objects.get(user=user)
+                self.fields["inventariante"].queryset = Inventariante.objects.filter(pk=inventariante.pk)
+                self.fields["inventariante"].initial = inventariante
+                self.fields["inventariante"].widget.attrs["readonly"] = True
+                self.fields["inventariante"].disabled = True
+            except Inventariante.DoesNotExist:
+                # Caso o usuário não seja inventariante
+                self.fields["inventariante"].queryset = Inventariante.objects.none()

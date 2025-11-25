@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from .forms import PatrimonioForm, InventarianteForm
 from .models import Inventariante, Patrimonio
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 # DASHBOARD PRINCIPAL
@@ -17,7 +18,6 @@ def admin_dashboard(request):
 @login_required
 def inventariantes_list(request):
     inventariantes = Inventariante.objects.all()
-
     return render(
         request,
         "app_inventario/partials/inventariantes_list.html",
@@ -53,7 +53,11 @@ def inventariante_add(request):
         return HttpResponse(html)
 
     form = InventarianteForm()
-    return render(request, "app_inventario/partials/form_inventariante.html", {"form": form})
+    return render(
+        request,
+        "app_inventario/partials/form_inventariante.html",
+        {"form": form}
+    )
 
 
 # EDITAR INVENTARIANTE
@@ -70,7 +74,11 @@ def inventariante_edit(request, pk):
     else:
         form = InventarianteForm(instance=inventariante)
 
-    return render(request, "app_inventario/partials/form_inventariante.html", {"form": form})
+    return render(
+        request,
+        "app_inventario/partials/form_inventariante.html",
+        {"form": form}
+    )
 
 
 # DELETAR INVENTARIANTE
@@ -80,15 +88,23 @@ def inventariante_delete(request, pk):
     inventariante.delete()
     return redirect('inventariantes_list')
 
-# LISTAGEM DE PATRIMÔNIO
+
+# LISTA DE PATRIMÔNIOS
 @login_required
 def patrimonio_list(request):
-    patrimonios = Patrimonio.objects.all()
-    return render(request, "app_inventario/patrimonio_list.html", {
-        "patrimonios": patrimonios
-    })
+    patrimonios = Patrimonio.objects.all().order_by('id')
+    paginator = Paginator(patrimonios, 4)
+    pagina = request.GET.get('page', 1)
+    lista = paginator.get_page(pagina)
 
-# FORMULÁRIO DE NOVO PATRIMÔNIO
+    return render(
+        request,
+        "app_inventario/patrimonio_list.html",
+        {"pagina": "patrimonio", "lista_patrimonios": lista}
+    )
+
+
+# FORMULÁRIO DE NOVO PATRIMÔNIO (USADO EM ALGUMAS PARTES)
 @login_required
 def patrimonio_form(request):
     inventariante = get_object_or_404(Inventariante, user=request.user)
@@ -117,14 +133,28 @@ def patrimonio_form(request):
         {"form": form}
     )
 
-# ADICIONAR PATRIMÔNIO
+
+# ADICIONAR PATRIMÔNIO (HTMX)
 @login_required
 def patrimonio_add(request):
-    if request.method == "GET":
-        form = PatrimonioForm()
-        return render(request, "app_inventario/form_patrimonio.html", {
-            "form": form
-        })
+    inventariante = get_object_or_404(Inventariante, user=request.user)
+
+    if request.method == "POST":
+        form = PatrimonioForm(request.POST, user=request.user)
+        if form.is_valid():
+            patrimonio = form.save(commit=False)
+            patrimonio.inventariante = inventariante
+            patrimonio.save()
+            return HttpResponse("OK")
+
+    else:
+        form = PatrimonioForm(user=request.user)
+
+    return render(
+        request,
+        "app_inventario/partials/form_patrimonio.html",
+        {"form": form}
+    )
 
 
 # EDITAR PATRIMÔNIO
@@ -158,6 +188,7 @@ def patrimonio_edit(request, pk):
         return HttpResponse(html)
 
     form = PatrimonioForm(instance=patrimonio)
+
     return render(
         request,
         "app_inventario/partials/form_patrimonio.html",

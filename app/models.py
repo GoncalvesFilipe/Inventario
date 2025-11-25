@@ -23,34 +23,34 @@ class Inventariante(models.Model):
     return f"{self.user.get_full_name() or self.user.username} ({self.matricula})"
   
 class Patrimonio(models.Model):
-  
-  STATUS_CHOICES = [
-    ('localizado', 'Localizado'),
-    ('nao_localizado', 'Não Localizado'),
-    ('calamidade', 'Perda por Calamidade'),
-  ]
 
-  patrimonio = models.IntegerField('Patrimônio', unique=True)
-  descricao = models.TextField(blank=True, null=True)
-  valor = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-  conta_contabil = models.CharField(max_length=50, blank=True, null=True)
-  setor = models.CharField(max_length=100, blank=True, null=True)
-  empenho = models.CharField(max_length=50, blank=True, null=True)
-  fornecedor = models.CharField(max_length=100, blank=True, null=True)
-  numero_documento = models.CharField(max_length=50, blank=True, null=True)
-  data_documento = models.DateField(blank=True, null=True)
-  data_ateste = models.DateField(blank=True, null=True)
-  dependencia = models.CharField(max_length=100, blank=True, null=True)
-  situacao = models.CharField(max_length=20, choices=STATUS_CHOICES, default='localizado')
-  observacoes = models.TextField(blank=True, null=True)
-  data_inventario = models.DateField(blank=True, null=True)
+    STATUS_CHOICES = [
+        ('localizado', 'Localizado'),
+        ('nao_localizado', 'Não Localizado'),
+        ('calamidade', 'Perda por Calamidade'),
+    ]
 
-  # O patrimônio pertence a um Inventariante
-  inventariante = models.ForeignKey(
-    Inventariante,
-    on_delete=models.CASCADE,
-    related_name='patrimonios'
-  )
+    patrimonio = models.IntegerField('Patrimônio', unique=True)
+    descricao = models.TextField(blank=True, null=True)
+    valor = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    conta_contabil = models.CharField(max_length=50, blank=True, null=True)
+    setor = models.CharField(max_length=100, blank=True, null=True)
+    empenho = models.CharField(max_length=50, blank=True, null=True)
+    fornecedor = models.CharField(max_length=100, blank=True, null=True)
+    numero_documento = models.CharField(max_length=50, blank=True, null=True)
+    data_documento = models.DateField(blank=True, null=True)
+    data_ateste = models.DateField(blank=True, null=True)
+    dependencia = models.CharField(max_length=100, blank=True, null=True)
+    situacao = models.CharField(max_length=20, choices=STATUS_CHOICES, default='localizado')
+    observacoes = models.TextField(blank=True, null=True)
+    data_inventario = models.DateField(blank=True, null=True)
 
-  def __str__(self):
-    return f"{self.patrimonio} ({self.inventariante.user.get_full_name() or self.inventariante.user.username})"
+    # FK para Inventariante (não alterada)
+    inventariante = models.ForeignKey(
+        Inventariante,
+        on_delete=models.CASCADE,
+        related_name='patrimonios'
+    )
+
+    def __str__(self):
+        return f"{self.patrimonio} ({self.inventariante.user.get_full_name() or self.inventariante.user.username})"

@@ -11,27 +11,36 @@
       </tr>
     </thead>
     <tbody>
-      {% for p in patrimonios %}
+      {% for p in lista_patrimonios %}
       <tr>
         <td>{{ p.patrimonio }}</td>
         <td>{{ p.descricao|truncatechars:50 }}</td>
         <td>{{ p.setor }}</td>
+
         <td>{{ p.usuario.nome }}</td>
+
         <td>{{ p.get_situacao_display }}</td>
+
         <td>
           <div class="d-flex flex-md-row flex-column gap-2">
 
             <!-- Botão Editar -->
-            <button class="btn btn-sm btn-outline-primary w-100" hx-get="{% url 'patrimonio_edit' p.pk %}"
-              hx-target="#form-patrimonio-container" hx-swap="innerHTML" hx-push-url="false">
+            <button class="btn btn-sm btn-outline-primary w-100"
+              hx-get="{% url 'patrimonio_edit' p.pk %}"
+              hx-target="#form-patrimonio-container"
+              hx-swap="innerHTML"
+              hx-push-url="false">
               Editar
             </button>
 
             <!-- Botão Excluir -->
-            <button class="btn btn-sm btn-outline-danger w-100" hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
-              hx-target="#tabela-patrimonios" hx-swap="outerHTML">
+            <button class="btn btn-sm btn-outline-danger w-100"
+              hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
+              hx-target="#tabela-patrimonios"
+              hx-swap="outerHTML">
               Excluir
             </button>
+
           </div>
         </td>
       </tr>

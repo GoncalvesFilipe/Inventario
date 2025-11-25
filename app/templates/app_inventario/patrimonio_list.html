@@ -1,12 +1,25 @@
 <div class="mb-3">
   <h5 class="fw-bold text-success">Lista de Patrimônios</h5>
 
-  <button class="btn btn-success btn-sm mt-2"
+  {% if request.user.is_superuser %}
+      <p class="text-secondary">
+        Visualizando: <strong>TODOS os patrimônios</strong>
+      </p>
+  {% else %}
+      <p class="text-secondary">
+        Visualizando patrimônios de: 
+        <strong>{{ request.user.inventariante }}</strong>
+      </p>
+  {% endif %}
+
+  <button
+    class="btn btn-success btn-sm mt-2"
     hx-get="{% url 'patrimonio_add' %}"
     hx-target="#modal-patrimonio-body"
     hx-swap="innerHTML"
     data-bs-toggle="modal"
-    data-bs-target="#modalPatrimonio">
+    data-bs-target="#modalPatrimonio"
+  >
     Adicionar Patrimônio
   </button>
 </div>
@@ -14,3 +27,61 @@
 <div id="tabela-patrimonios">
   {% include 'app_inventario/partials/tabela_patrimonios.html' %}
 </div>
+
+<!-- PAGINAÇÃO -->
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+
+    <!-- Primeira página -->
+    {% if lista_patrimonios.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page=1">&laquo; Primeira</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">&laquo; Primeira</span>
+      </li>
+    {% endif %}
+
+    <!-- Página anterior -->
+    {% if lista_patrimonios.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ lista_patrimonios.previous_page_number }}">Anterior</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Anterior</span>
+      </li>
+    {% endif %}
+
+    <!-- Página atual -->
+    <li class="page-item active">
+      <span class="page-link">
+        {{ lista_patrimonios.number }} / {{ lista_patrimonios.paginator.num_pages }}
+      </span>
+    </li>
+
+    <!-- Próxima página -->
+    {% if lista_patrimonios.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ lista_patrimonios.next_page_number }}">Próxima</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Próxima</span>
+      </li>
+    {% endif %}
+
+    <!-- Última página -->
+    {% if lista_patrimonios.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ lista_patrimonios.paginator.num_pages }}">Última &raquo;</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Última &raquo;</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
