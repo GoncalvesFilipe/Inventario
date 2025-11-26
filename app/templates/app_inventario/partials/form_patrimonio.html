@@ -1,7 +1,9 @@
 {% load form_filters %}
 
 <div class="modal-header">
-  <h5 class="modal-title text-success fw-semibold">Novo Patrimônio</h5>
+  <h5 class="modal-title text-success fw-semibold">
+    {% if modo_edicao %}Editar Patrimônio{% else %}Novo Patrimônio{% endif %}
+  </h5>
   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 
@@ -13,7 +15,13 @@
   </div>
   {% endif %}
 
-  <form method="post" hx-post="{% url 'patrimonio_add' %}" hx-target="#conteudo-admin" hx-swap="innerHTML" class="p-1">
+  <form
+    method="post"
+    hx-post="{% if modo_edicao %}{% url 'patrimonio_edit' patrimonio.id %}{% else %}{% url 'patrimonio_add' %}{% endif %}"
+    hx-target="#modal-patrimonio-body"
+    hx-swap="innerHTML"
+    class="p-1"
+  >
     {% csrf_token %}
 
     {% for field in form %}
@@ -34,18 +42,25 @@
 
       {% else %}
 
-      {% if field.errors %}
-      {{ field|add_class:"form-control is-invalid" }}
-      <div class="invalid-feedback">
-        {{ field.errors.as_text|slice:"2:" }}
-      </div>
-      {% else %}
-      {{ field|add_class:"form-control"|add_placeholder:field.label }}
-      {% endif %}
+        {% if field.errors %}
+          {{ field|add_class:"form-control is-invalid" }}
+          <div class="invalid-feedback">
+            {{ field.errors.as_text|slice:"2:" }}
+          </div>
+        {% else %}
 
-      {% if field.help_text %}
-      <div class="form-text">{{ field.help_text }}</div>
-      {% endif %}
+          {# 🔥 AJUSTE IMPORTANTE — Não remover value dos campos date #}
+          {% if field.field.widget.input_type == "date" %}
+              {{ field|add_class:"form-control" }}
+          {% else %}
+              {{ field|add_class:"form-control"|add_placeholder:field.label }}
+          {% endif %}
+
+        {% endif %}
+
+        {% if field.help_text %}
+        <div class="form-text">{{ field.help_text }}</div>
+        {% endif %}
 
       {% endif %}
 

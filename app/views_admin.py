@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 # ======= DASHBOARD =======
@@ -99,7 +100,11 @@ def inventariante_edit(request, pk):
             }
         )
 
-    return render(request, "app_inventario/partials/form_inventariante.html", {"form": form})
+    return render(
+        request,
+        "app_inventario/partials/form_inventariante.html",
+        {"form": form}
+    )
 
 
 @login_required
@@ -112,17 +117,22 @@ def inventariante_delete(request, pk):
 
 # ======= PATRIMÔNIO =======
 
+# LISTA DE PATRIMÔNIOS
 @login_required
 def patrimonio_list(request):
-    """ Lista todos os patrimônios """
-    patrimonios = Patrimonio.objects.all()
+    patrimonios = Patrimonio.objects.all().order_by('id')
+    paginator = Paginator(patrimonios, 4)
+    pagina = request.GET.get('page', 1)
+    lista = paginator.get_page(pagina)
+
     return render(
         request,
         "app_inventario/patrimonio_list.html",
-        {"patrimonios": patrimonios}
+        {"pagina": "patrimonio", "lista_patrimonios": lista}
     )
 
 
+# FORMULÁRIO DE NOVO PATRIMÔNIO (USADO EM ALGUMAS PARTES)
 @login_required
 def patrimonio_form(request):
     """
@@ -158,53 +168,50 @@ def patrimonio_form(request):
     )
 
 
+# ADICIONAR PATRIMÔNIO (HTMX)
 @login_required
 def patrimonio_add(request):
-    """ Apenas exibe formulário de patrimônio """
-    form = PatrimonioForm()
-    return render(request, "app_inventario/form_patrimonio.html", {"form": form})
-
-
-@login_required
-def patrimonio_edit(request, pk):
-    """ Edita patrimônio somente do próprio inventariante """
     inventariante = get_object_or_404(Inventariante, user=request.user)
-    patrimonio = get_object_or_404(Patrimonio, pk=pk, inventariante=inventariante)
 
     if request.method == "POST":
-        form = PatrimonioForm(request.POST, instance=patrimonio)
-
+        form = PatrimonioForm(request.POST, user=request.user)
         if form.is_valid():
-            form.save()
+            patrimonio = form.save(commit=False)
+            patrimonio.inventariante = inventariante
+            patrimonio.save()
+            return HttpResponse("OK")
 
-            patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
-
-            tabela = render_to_string(
-                "app_inventario/partials/tabela_patrimonios.html",
-                {"patrimonios": patrimonios},
-                request=request
-            )
-
-            return HttpResponse(
-                tabela,
-                headers={"HX-Trigger": "patrimonio-atualizado"}
-            )
-
-        # Se erro, retorna formulário com mensagens
-        html = render_to_string(
-            "app_inventario/partials/form_patrimonio.html",
-            {"form": form, "patrimonio": patrimonio},
-            request=request
-        )
-        return HttpResponse(html)
-
-    form = PatrimonioForm(instance=patrimonio)
+    else:
+        form = PatrimonioForm(user=request.user)
 
     return render(
         request,
         "app_inventario/partials/form_patrimonio.html",
-        {"form": form, "patrimonio": patrimonio}
+        {"form": form}
     )
+
+
+@login_required
+def patrimonio_edit(request, pk):
+    patrimonio = get_object_or_404(Patrimonio, pk=pk)
+
+    if request.method == "POST":
+        form = PatrimonioForm(
+            request.POST,
+            request.FILES,
+            instance=patrimonio
+        )
+        if form.is_valid():
+            form.save()
+            return HttpResponse("", headers={"HX-Refresh": "true"})
+    else:
+        form = PatrimonioForm(instance=patrimonio)
+
+    return render(request, "app_inventario/partials/form_patrimonio.html", {
+        "form": form,
+        "modo_edicao": True,
+        "patrimonio": patrimonio,
+    })
 
 
 @login_required

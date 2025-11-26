@@ -7,10 +7,8 @@ from .models import Inventariante, Patrimonio
 class InventarianteUserForm(UserCreationForm):
     """
     Formulário unificado para criar User + Inventariante.
-    Estende UserCreationForm e adiciona todos os campos extras do Inventariante.
     """
 
-    # Campos extras do modelo Inventariante
     matricula = forms.CharField(label="Matrícula", max_length=20)
     funcao = forms.CharField(label="Função/Cargo", max_length=50)
     telefone = forms.CharField(label="Telefone", max_length=15)
@@ -18,10 +16,6 @@ class InventarianteUserForm(UserCreationForm):
     ano_atuacao = forms.IntegerField(label="Ano de Atuação", required=False)
 
     class Meta:
-        """
-        User será criado normalmente, mas os demais campos adicionais
-        serão utilizados para criar a instância de Inventariante.
-        """
         model = User
         fields = [
             "username",
@@ -38,24 +32,15 @@ class InventarianteUserForm(UserCreationForm):
         ]
 
     def save(self, commit=True):
-        """
-        Sobrescrita do método save():
-        - Cria o User normalmente
-        - Em seguida cria a tabela Inventariante associada ao User
-        """
-        # Criando o user sem salvar ainda (para adicionar campos extras antes)
         user = super().save(commit=False)
 
-        # Atualizando campos do User
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.email = self.cleaned_data["email"]
 
-        # Salvando User
         if commit:
             user.save()
 
-            # Criando Inventariante vinculado ao user
             Inventariante.objects.create(
                 user=user,
                 matricula=self.cleaned_data["matricula"],
@@ -69,26 +54,15 @@ class InventarianteUserForm(UserCreationForm):
 
 
 class PatrimonioForm(forms.ModelForm):
-    """ Formulário padrão para cadastro de patrimônio """
 
     class Meta:
         model = Patrimonio
         fields = [
-            'patrimonio',
-            'descricao',
-            'valor',
-            'conta_contabil',
-            'setor',
-            'empenho',
-            'fornecedor',
-            'numero_documento',
-            'data_documento',
-            'data_ateste',
-            'dependencia',
-            'situacao',
-            'observacoes',
-            'data_inventario',
-            'inventariante',
+            "patrimonio", "descricao", "valor", "conta_contabil",
+            "setor", "empenho", "fornecedor", "numero_documento",
+            "data_documento", "data_ateste", "dependencia",
+            "situacao", "observacoes", "data_inventario",
+            "inventariante",
         ]
 
         labels = {
@@ -108,3 +82,32 @@ class PatrimonioForm(forms.ModelForm):
             'data_inventario': 'Data do Inventário',
             'inventariante': 'Inventariante Responsável',
         }
+
+        widgets = {
+            "data_documento": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "data_ateste": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "data_inventario": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Aceita múltiplos formatos
+        formatos_data = ["%Y-%m-%d", "%d/%m/%Y"]
+        self.fields["data_documento"].input_formats = formatos_data
+        self.fields["data_ateste"].input_formats = formatos_data
+        self.fields["data_inventario"].input_formats = formatos_data
+
+        # Filtra inventariante pelo user logado
+        if user:
+            try:
+                inventariante = Inventariante.objects.get(user=user)
+                self.fields["inventariante"].queryset = Inventariante.objects.filter(pk=inventariante.pk)
+                self.fields["inventariante"].initial = inventariante
+
+                # Campo apenas leitura
+                self.fields["inventariante"].disabled = True
+                self.fields["inventariante"].widget.attrs["readonly"] = True
+
+            except Inventariante.DoesNotExist:
+                self.fields["inventariante"].queryset = Inventariante.objects.none()
