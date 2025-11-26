@@ -133,6 +133,7 @@ BOOTSTRAP5 = {
 }
 
 # URL login page 
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'index'
-LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'login' # Define qual rota o Django usa quando o usuário tenta acessar uma página protegida e não está autenticado.
+LOGIN_REDIRECT_URL = 'index' # Define para onde o usuário será redirecionado após fazer login com sucesso.
+LOGOUT_REDIRECT_URL = 'login' # Define para onde o usuário será redirecionado após fazer logout.
+
