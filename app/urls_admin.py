@@ -10,7 +10,6 @@ urlpatterns = [
     path('patrimonios/', views_admin.patrimonio_list, name='patrimonio_list'),
 
     # Patrimônio
-    path('patrimonio/list/', views_admin.patrimonio_list, name='patrimonio_list'),
     path('patrimonio/form/', views_admin.patrimonio_form, name='patrimonio_form'),
     path('patrimonio/add/', views_admin.patrimonio_add, name='patrimonio_add'),
     path('patrimonio/<int:pk>/editar/', views_admin.patrimonio_edit, name='patrimonio_edit'),

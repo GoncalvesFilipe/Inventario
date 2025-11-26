@@ -61,18 +61,21 @@ class PatrimonioForm(forms.ModelForm):
         ]
 
         widgets = {
-            "data_documento": forms.DateInput(attrs={"type": "date"}),
-            "data_ateste": forms.DateInput(attrs={"type": "date"}),
-            "data_inventario": forms.DateInput(attrs={"type": "date"}),
+            "data_documento": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "data_ateste": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "data_inventario": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
         }
 
     def __init__(self, *args, user=None, **kwargs):
-        """
-        - Filtra o campo inventariante para exibir apenas o inventariante do usuário logado
-        - Impede edição desse campo deixando ele fixo
-        """
         super().__init__(*args, **kwargs)
 
+        # 🔥 Essencial para salvar e recarregar datas corretamente
+        formatos_data = ["%Y-%m-%d", "%d/%m/%Y"]
+        self.fields["data_documento"].input_formats = formatos_data
+        self.fields["data_ateste"].input_formats = formatos_data
+        self.fields["data_inventario"].input_formats = formatos_data
+
+        # Filtra inventariante pelo usuário logado
         if user:
             try:
                 inventariante = Inventariante.objects.get(user=user)
@@ -81,5 +84,4 @@ class PatrimonioForm(forms.ModelForm):
                 self.fields["inventariante"].widget.attrs["readonly"] = True
                 self.fields["inventariante"].disabled = True
             except Inventariante.DoesNotExist:
-                # Caso o usuário não seja inventariante
                 self.fields["inventariante"].queryset = Inventariante.objects.none()

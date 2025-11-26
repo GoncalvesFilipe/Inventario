@@ -32,10 +32,15 @@
 <nav aria-label="Page navigation">
   <ul class="pagination justify-content-center">
 
-    <!-- Primeira página -->
     {% if lista_patrimonios.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page=1">&laquo; Primeira</a>
+        <a 
+          class="page-link" 
+          href="#" 
+          hx-get="{% url 'patrimonio_list' %}?page=1"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML"
+        >&laquo; Primeira</a>
       </li>
     {% else %}
       <li class="page-item disabled">
@@ -43,10 +48,15 @@
       </li>
     {% endif %}
 
-    <!-- Página anterior -->
     {% if lista_patrimonios.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ lista_patrimonios.previous_page_number }}">Anterior</a>
+        <a 
+          class="page-link" 
+          href="#" 
+          hx-get="{% url 'patrimonio_list' %}?page={{ lista_patrimonios.previous_page_number }}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML"
+        >Anterior</a>
       </li>
     {% else %}
       <li class="page-item disabled">
@@ -54,17 +64,21 @@
       </li>
     {% endif %}
 
-    <!-- Página atual -->
     <li class="page-item active">
       <span class="page-link">
         {{ lista_patrimonios.number }} / {{ lista_patrimonios.paginator.num_pages }}
       </span>
     </li>
 
-    <!-- Próxima página -->
     {% if lista_patrimonios.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ lista_patrimonios.next_page_number }}">Próxima</a>
+        <a 
+          class="page-link" 
+          href="#" 
+          hx-get="{% url 'patrimonio_list' %}?page={{ lista_patrimonios.next_page_number }}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML"
+        >Próxima</a>
       </li>
     {% else %}
       <li class="page-item disabled">
@@ -72,10 +86,15 @@
       </li>
     {% endif %}
 
-    <!-- Última página -->
     {% if lista_patrimonios.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ lista_patrimonios.paginator.num_pages }}">Última &raquo;</a>
+        <a 
+          class="page-link" 
+          href="#" 
+          hx-get="{% url 'patrimonio_list' %}?page={{ lista_patrimonios.paginator.num_pages }}"
+          hx-target="#conteudo-admin"
+          hx-swap="innerHTML"
+        >Última &raquo;</a>
       </li>
     {% else %}
       <li class="page-item disabled">

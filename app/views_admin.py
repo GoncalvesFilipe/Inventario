@@ -160,40 +160,25 @@ def patrimonio_add(request):
 # EDITAR PATRIMÔNIO
 @login_required
 def patrimonio_edit(request, pk):
-    inventariante = get_object_or_404(Inventariante, user=request.user)
-    patrimonio = get_object_or_404(Patrimonio, pk=pk, inventariante=inventariante)
+    patrimonio = get_object_or_404(Patrimonio, pk=pk)
 
     if request.method == "POST":
-        form = PatrimonioForm(request.POST, instance=patrimonio)
+        form = PatrimonioForm(
+            request.POST,
+            request.FILES,
+            instance=patrimonio
+        )
         if form.is_valid():
             form.save()
+            return HttpResponse("", headers={"HX-Refresh": "true"})
+    else:
+        form = PatrimonioForm(instance=patrimonio)
 
-            patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
-            tabela = render_to_string(
-                "app_inventario/partials/tabela_patrimonios.html",
-                {"patrimonios": patrimonios},
-                request=request
-            )
-
-            return HttpResponse(
-                tabela,
-                headers={"HX-Trigger": "patrimonio-atualizado"}
-            )
-
-        html = render_to_string(
-            "app_inventario/partials/form_patrimonio.html",
-            {"form": form, "patrimonio": patrimonio},
-            request=request
-        )
-        return HttpResponse(html)
-
-    form = PatrimonioForm(instance=patrimonio)
-
-    return render(
-        request,
-        "app_inventario/partials/form_patrimonio.html",
-        {"form": form, "patrimonio": patrimonio}
-    )
+    return render(request, "app_inventario/partials/form_patrimonio.html", {
+        "form": form,
+        "modo_edicao": True,
+        "patrimonio": patrimonio,
+    })
 
 
 # CONFIRMAR EXCLUSÃO DE PATRIMÔNIO
