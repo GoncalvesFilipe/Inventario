@@ -56,7 +56,8 @@
 
     <p class="mt-4 mb-0 small text-muted">
       Ainda não possui uma conta?
-      <a href="{% url 'register' %}" class="text-decoration-none fw-semibold text-primary">
+      <a href="#" class="text-decoration-none fw-semibold text-primary" data-bs-toggle="modal"
+        data-bs-target="#modalRegistro" hx-get="{% url 'register' %}" hx-target="#modal-body" hx-swap="innerHTML">
         Cadastre-se aqui
       </a>
     </p>

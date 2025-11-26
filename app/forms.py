@@ -1,55 +1,76 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Inventariante, Patrimonio
 
 
-class InventarianteForm(forms.ModelForm):
-    """Formulário para dados extras do inventariante."""
-    
-    # Campos pertencentes ao User
-    first_name = forms.CharField(label="Nome", max_length=150)
-    last_name = forms.CharField(label="Sobrenome", max_length=150)
-    email = forms.EmailField(label="E-mail")
+class InventarianteUserForm(UserCreationForm):
+    """
+    Formulário unificado para criar User + Inventariante.
+    Estende UserCreationForm e adiciona todos os campos extras do Inventariante.
+    """
+
+    # Campos extras do modelo Inventariante
+    matricula = forms.CharField(label="Matrícula", max_length=20)
+    funcao = forms.CharField(label="Função/Cargo", max_length=50)
+    telefone = forms.CharField(label="Telefone", max_length=15)
+    presidente = forms.BooleanField(label="Presidente da Comissão", required=False)
+    ano_atuacao = forms.IntegerField(label="Ano de Atuação", required=False)
 
     class Meta:
-        model = Inventariante
+        """
+        User será criado normalmente, mas os demais campos adicionais
+        serão utilizados para criar a instância de Inventariante.
+        """
+        model = User
         fields = [
-            'matricula',
-            'funcao',
-            'telefone',
-            'presidente',
-            'ano_atuacao',
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password1",
+            "password2",
+            "matricula",
+            "funcao",
+            "telefone",
+            "presidente",
+            "ano_atuacao",
         ]
-        labels = {
-            'matricula': 'Matrícula',
-            'funcao': 'Função/Cargo',
-            'telefone': 'Telefone',
-            'presidente': 'Presidente da Comissão',
-            'ano_atuacao': 'Ano de Atuação',
-        }
 
-    # Salvando User + Inventariante juntos
     def save(self, commit=True):
-        inventariante = super().save(commit=False)
+        """
+        Sobrescrita do método save():
+        - Cria o User normalmente
+        - Em seguida cria a tabela Inventariante associada ao User
+        """
+        # Criando o user sem salvar ainda (para adicionar campos extras antes)
+        user = super().save(commit=False)
 
-        # Criando ou atualizando o usuário Django
-        if inventariante.pk:
-            user = inventariante.user  # já existe
-        else:
-            user = User()
+        # Atualizando campos do User
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+        user.email = self.cleaned_data["email"]
 
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        user.email = self.cleaned_data['email']
-
+        # Salvando User
         if commit:
             user.save()
-            inventariante.user = user
-            inventariante.save()
 
-        return inventariante
+            # Criando Inventariante vinculado ao user
+            Inventariante.objects.create(
+                user=user,
+                matricula=self.cleaned_data["matricula"],
+                funcao=self.cleaned_data["funcao"],
+                telefone=self.cleaned_data["telefone"],
+                presidente=self.cleaned_data["presidente"],
+                ano_atuacao=self.cleaned_data["ano_atuacao"],
+            )
+
+        return user
+
 
 class PatrimonioForm(forms.ModelForm):
+    """ Formulário padrão para cadastro de patrimônio """
+
     class Meta:
         model = Patrimonio
         fields = [
@@ -69,6 +90,7 @@ class PatrimonioForm(forms.ModelForm):
             'data_inventario',
             'inventariante',
         ]
+
         labels = {
             'patrimonio': 'Número do Patrimônio',
             'descricao': 'Descrição',

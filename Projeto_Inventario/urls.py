@@ -11,9 +11,9 @@ urlpatterns = [
     # Login usando LoginView do Django e template da app users
     path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
 
-    # Logout e register da app users
+    # Register e logout da app users
+    path('register/', users_views.register_view, name='register'),
     path('logout/', users_views.logout_view, name='logout'),
-    path('register/', users_views.register, name='register'),
     
     path('painel/', include('app.urls_admin')),
 ]

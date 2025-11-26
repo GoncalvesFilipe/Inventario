@@ -31,11 +31,8 @@ document.body.addEventListener("htmx:afterSwap", function (evt) {
 
 // ADICIONAR CSRF AUTOMATICAMENTE EM TODAS AS REQUISIÇÕES HTMX
 document.body.addEventListener("htmx:configRequest", function (event) {
-    const tokenInput = document.querySelector(
-        '#csrf-form input[name="csrfmiddlewaretoken"]'
-    );
+    document.body.addEventListener("htmx:configRequest", function (event) {
+    event.detail.headers["X-CSRFToken"] = window.CSRF_TOKEN;
+});
 
-    if (tokenInput) {
-        event.detail.headers["X-CSRFToken"] = tokenInput.value;
-    }
 });

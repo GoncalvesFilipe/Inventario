@@ -1,23 +1,25 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from .forms import PatrimonioForm, InventarianteForm
+
+from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
 
 
-# DASHBOARD PRINCIPAL
+# ======= DASHBOARD =======
 @login_required
 def admin_dashboard(request):
+    """ Página inicial do painel administrativo """
     return render(request, "app_inventario/admin_dashboard.html")
 
 
-# LISTAGEM DE INVENTARIANTES
+# ======= INVENTARIANTES =======
 @login_required
 def inventariantes_list(request):
+    """ Lista todos os inventariantes """
     inventariantes = Inventariante.objects.all()
-
     return render(
         request,
         "app_inventario/partials/inventariantes_list.html",
@@ -25,26 +27,28 @@ def inventariantes_list(request):
     )
 
 
-# ADICIONAR INVENTARIANTE (HTMX)
 @login_required
 def inventariante_add(request):
+    """
+    Cria um inventariante.
+    Usa InventarianteUserForm, que cria User + Inventariante.
+    """
     if request.method == "POST":
-        form = InventarianteForm(request.POST)
+        form = InventarianteUserForm(request.POST)
 
         if form.is_valid():
-            inventariante = form.save(commit=False)
-            inventariante.user = request.user
-            inventariante.save()
+            form.save()
 
+            # Recarrega lista após salvar
             inventariantes = Inventariante.objects.all()
             html = render_to_string(
-                "app_inventario/partials/usuarios_list.html",
-                {"usuarios": inventariantes},
+                "app_inventario/partials/inventariantes_list.html",
+                {"inventariantes": inventariantes},
                 request=request
             )
             return HttpResponse(html)
 
-        # Form inválido
+        # Caso erro, recarrega o formulário com erros
         html = render_to_string(
             "app_inventario/partials/form_inventariante.html",
             {"form": form},
@@ -52,55 +56,91 @@ def inventariante_add(request):
         )
         return HttpResponse(html)
 
-    form = InventarianteForm()
+    # GET → mostra formulário vazio
+    form = InventarianteUserForm()
     return render(request, "app_inventario/partials/form_inventariante.html", {"form": form})
 
 
-# EDITAR INVENTARIANTE
 @login_required
 def inventariante_edit(request, pk):
+    """
+    Edita User + Inventariante no mesmo formulário unificado.
+    """
     inventariante = get_object_or_404(Inventariante, pk=pk)
+    user = inventariante.user
 
     if request.method == "POST":
-        form = InventarianteForm(request.POST, instance=inventariante)
+        form = InventarianteUserForm(request.POST, instance=user)
+
         if form.is_valid():
-            form.save()
-            return redirect('inventariantes_list')
+            # Salva User
+            user = form.save()
+
+            # Atualiza Inventariante
+            inventariante.matricula = form.cleaned_data["matricula"]
+            inventariante.funcao = form.cleaned_data["funcao"]
+            inventariante.telefone = form.cleaned_data["telefone"]
+            inventariante.presidente = form.cleaned_data["presidente"]
+            inventariante.ano_atuacao = form.cleaned_data["ano_atuacao"]
+            inventariante.save()
+
+            return redirect("inventariantes_list")
 
     else:
-        form = InventarianteForm(instance=inventariante)
+        # Preenche com valores do Inventariante
+        form = InventarianteUserForm(
+            instance=user,
+            initial={
+                "matricula": inventariante.matricula,
+                "funcao": inventariante.funcao,
+                "telefone": inventariante.telefone,
+                "presidente": inventariante.presidente,
+                "ano_atuacao": inventariante.ano_atuacao,
+            }
+        )
 
     return render(request, "app_inventario/partials/form_inventariante.html", {"form": form})
 
 
-# DELETAR INVENTARIANTE
 @login_required
 def inventariante_delete(request, pk):
+    """ Deleta o inventariante e o usuário correspondente """
     inventariante = get_object_or_404(Inventariante, pk=pk)
-    inventariante.delete()
-    return redirect('inventariantes_list')
+    inventariante.user.delete()
+    return redirect("inventariantes_list")
 
-# LISTAGEM DE PATRIMÔNIO
+
+# ======= PATRIMÔNIO =======
+
 @login_required
 def patrimonio_list(request):
+    """ Lista todos os patrimônios """
     patrimonios = Patrimonio.objects.all()
-    return render(request, "app_inventario/patrimonio_list.html", {
-        "patrimonios": patrimonios
-    })
+    return render(
+        request,
+        "app_inventario/patrimonio_list.html",
+        {"patrimonios": patrimonios}
+    )
 
-# FORMULÁRIO DE NOVO PATRIMÔNIO
+
 @login_required
 def patrimonio_form(request):
+    """
+    Form para cadastrar patrimônio via HTMX.
+    O patrimônio é sempre vinculado ao inventariante logado.
+    """
     inventariante = get_object_or_404(Inventariante, user=request.user)
 
     if request.method == "POST":
         form = PatrimonioForm(request.POST)
+
         if form.is_valid():
             patrimonio = form.save(commit=False)
             patrimonio.inventariante = inventariante
             patrimonio.save()
 
             patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
+
             tabela = render_to_string(
                 "app_inventario/partials/tabela_patrimonios.html",
                 {"patrimonios": patrimonios},
@@ -117,28 +157,28 @@ def patrimonio_form(request):
         {"form": form}
     )
 
-# ADICIONAR PATRIMÔNIO
+
 @login_required
 def patrimonio_add(request):
-    if request.method == "GET":
-        form = PatrimonioForm()
-        return render(request, "app_inventario/form_patrimonio.html", {
-            "form": form
-        })
+    """ Apenas exibe formulário de patrimônio """
+    form = PatrimonioForm()
+    return render(request, "app_inventario/form_patrimonio.html", {"form": form})
 
 
-# EDITAR PATRIMÔNIO
 @login_required
 def patrimonio_edit(request, pk):
+    """ Edita patrimônio somente do próprio inventariante """
     inventariante = get_object_or_404(Inventariante, user=request.user)
     patrimonio = get_object_or_404(Patrimonio, pk=pk, inventariante=inventariante)
 
     if request.method == "POST":
         form = PatrimonioForm(request.POST, instance=patrimonio)
+
         if form.is_valid():
             form.save()
 
             patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
+
             tabela = render_to_string(
                 "app_inventario/partials/tabela_patrimonios.html",
                 {"patrimonios": patrimonios},
@@ -150,6 +190,7 @@ def patrimonio_edit(request, pk):
                 headers={"HX-Trigger": "patrimonio-atualizado"}
             )
 
+        # Se erro, retorna formulário com mensagens
         html = render_to_string(
             "app_inventario/partials/form_patrimonio.html",
             {"form": form, "patrimonio": patrimonio},
@@ -158,6 +199,7 @@ def patrimonio_edit(request, pk):
         return HttpResponse(html)
 
     form = PatrimonioForm(instance=patrimonio)
+
     return render(
         request,
         "app_inventario/partials/form_patrimonio.html",
@@ -165,9 +207,9 @@ def patrimonio_edit(request, pk):
     )
 
 
-# CONFIRMAR EXCLUSÃO DE PATRIMÔNIO
 @login_required
 def confirmar_exclusao_patrimonio(request, pk):
+    """ Renderiza modal de confirmação para excluir """
     inventariante = get_object_or_404(Inventariante, user=request.user)
     patrimonio = get_object_or_404(Patrimonio, pk=pk, inventariante=inventariante)
 
@@ -178,10 +220,10 @@ def confirmar_exclusao_patrimonio(request, pk):
     )
 
 
-# EXCLUIR PATRIMÔNIO
 @login_required
 @csrf_exempt
 def excluir_patrimonio(request, pk):
+    """ Exclui patrimônio e atualiza tabela HTMX """
     inventariante = get_object_or_404(Inventariante, user=request.user)
 
     if request.method in ["POST", "DELETE"]:

@@ -8,13 +8,11 @@ class Inventariante(models.Model):
   matricula = models.CharField(max_length=20, verbose_name='Matrícula', unique=True)
   funcao = models.CharField(max_length=50)
   telefone = models.CharField(max_length=15)
-  email = models.EmailField(blank=True, null=True)
-  presidente = models.BooleanField(default=True)
+  presidente = models.BooleanField(default=False)
   data_cadastro = models.DateField(auto_now_add=True)
   data_atualizacao = models.DateTimeField(auto_now=True)
   ano_atuacao = models.PositiveBigIntegerField(
     verbose_name='Ano de atuação',
-    unique=True,
     blank=True,
     null=True
   )
