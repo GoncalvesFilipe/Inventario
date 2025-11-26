@@ -133,7 +133,7 @@ BOOTSTRAP5 = {
 }
 
 # URL login page 
-LOGIN_URL = '/users/login/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'users:login'
 
