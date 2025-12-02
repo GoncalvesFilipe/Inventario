@@ -1,59 +1,35 @@
-<div id="tabela-patrimonios">
-  <table class="table table-hover align-middle">
-    <thead class="table-success">
+<table class="table table-striped table-hover">
+  <thead class="table-success">
+    <tr>
+      <th>ID</th>
+      <th>Descrição</th>
+      <th>Nº Patrimônio</th>
+      <th>Responsável</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for p in lista %}
       <tr>
-        <th>Nº Patrimônio</th>
-        <th>Descrição</th>
-        <th>Setor</th>
-        <th>Usuário Responsável</th>
-        <th>Situação</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in lista_patrimonios %}
-      <tr>
-        <td>{{ p.patrimonio }}</td>
-        <td>{{ p.descricao|truncatechars:50 }}</td>
-        <td>{{ p.setor }}</td>
-
-        <td>{{ p.usuario.nome }}</td>
-
-        <td>{{ p.get_situacao_display }}</td>
-
+        <td>{{ p.id }}</td>
+        <td>{{ p.descricao }}</td>
+        <td>{{ p.numero_patrimonio }}</td>
+        <td>{{ p.responsavel }}</td>
         <td>
-          <div class="d-flex flex-md-row flex-column gap-2">
-            <!-- Botão Editar -->
-            <button
-              class="btn btn-sm btn-outline-primary w-100"
-              hx-get="{% url 'patrimonio_edit' p.pk %}"
-              hx-target="#modal-patrimonio-body"
-              hx-swap="innerHTML"
-              data-bs-toggle="modal"
-              data-bs-target="#modalPatrimonio"
-            >
-              Editar
-            </button>
+          <button class="btn btn-success btn-sm"
+            hx-get="{% url 'patrimonio_edit' p.id %}"
+            hx-target="#modal-patrimonio-body"
+            data-bs-toggle="modal"
+            data-bs-target="#modalPatrimonio">
+            Editar
+          </button>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center">Nenhum patrimônio encontrado.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-            <!-- Botão Excluir -->
-            <button
-              class="btn btn-sm btn-outline-danger w-100"
-              hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
-              hx-target="#tabela-patrimonios"
-              hx-swap="outerHTML"
-            >
-              Excluir
-            </button>
-          </div>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" class="text-center text-muted">
-          Nenhum patrimônio encontrado.
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+{% include "partials/paginacao.html" %}

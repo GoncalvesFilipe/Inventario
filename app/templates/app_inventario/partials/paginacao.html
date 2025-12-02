@@ -1,0 +1,29 @@
+{% if lista.has_other_pages %}
+<nav>
+  <ul class="pagination">
+    {% if lista.has_previous %}
+      <li class="page-item">
+        <a hx-get="?page={{ lista.previous_page_number }}{{ search_query }}"
+           hx-target="#tabela-patrimonios"
+           class="page-link">Anterior</a>
+      </li>
+    {% endif %}
+
+    {% for i in lista.paginator.page_range %}
+      <li class="page-item {% if lista.number == i %}active{% endif %}">
+        <a hx-get="?page={{ i }}{{ search_query }}"
+           hx-target="#tabela-patrimonios"
+           class="page-link">{{ i }}</a>
+      </li>
+    {% endfor %}
+
+    {% if lista.has_next %}
+      <li class="page-item">
+        <a hx-get="?page={{ lista.next_page_number }}{{ search_query }}"
+           hx-target="#tabela-patrimonios"
+           class="page-link">Próxima</a>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}

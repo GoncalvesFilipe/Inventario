@@ -12,7 +12,7 @@ urlpatterns = [
     # Patrimônio
     path('patrimonio/form/', views_admin.patrimonio_form, name='patrimonio_form'),
     path('patrimonio/add/', views_admin.patrimonio_add, name='patrimonio_add'),
-    path('patrimonio/<int:pk>/editar/', views_admin.patrimonio_edit, name='patrimonio_edit'),
+    path('patrimonios/<int:pk>/editar/', views_admin.patrimonio_edit, name='patrimonio_edit'),
     path('patrimonio/<int:pk>/confirmar-exclusao/', views_admin.confirmar_exclusao_patrimonio, name='confirmar_exclusao_patrimonio'),
     path('patrimonio/<int:pk>/excluir/', views_admin.excluir_patrimonio, name='excluir_patrimonio'),
 
