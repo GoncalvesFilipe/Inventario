@@ -34,15 +34,11 @@
 
     <!-- Área dinâmica -->
     <div class="col-md-9">
-
-      <!-- AGORA CARREGANDO A LISTA AUTOMATICAMENTE -->
-      <div id="conteudo-admin"
-           class="border rounded-3 p-3 bg-light shadow-sm"
-           hx-get="{% url 'patrimonio_list' %}"
-           hx-trigger="load"
-           hx-swap="innerHTML">
+      <div id="conteudo-admin" class="border rounded-3 p-3 bg-light shadow-sm">
+        <p class="text-muted text-center mb-0">
+          Selecione uma opção no menu para começar.
+        </p>
       </div>
-
     </div>
 
   </div>

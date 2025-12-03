@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.db import models
 
 from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
@@ -121,27 +120,16 @@ def inventariante_delete(request, pk):
 # LISTA DE PATRIMÔNIOS
 @login_required
 def patrimonio_list(request):
-    search = request.GET.get("search", "")
+    patrimonios = Patrimonio.objects.all().order_by('id')
+    paginator = Paginator(patrimonios, 4)
+    pagina = request.GET.get('page', 1)
+    lista = paginator.get_page(pagina)
 
-    lista = Patrimonio.objects.all()
-
-    if search:
-        lista = lista.filter(descricao__icontains=search)
-
-    paginator = Paginator(lista, 5)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
-    contexto = {
-        "lista": page_obj,
-        "search_query": f"&search={search}" if search else "",
-    }
-
-    if request.htmx:
-        return render(request, "partials/tabela_patrimonios.html", contexto)
-
-    return render(request, "patrimonio/patrimonio_list.html", contexto)
-
+    return render(
+        request,
+        "app_inventario/patrimonio_list.html",
+        {"pagina": "patrimonio", "lista_patrimonios": lista}
+    )
 
 
 # FORMULÁRIO DE NOVO PATRIMÔNIO (USADO EM ALGUMAS PARTES)
@@ -161,24 +149,11 @@ def patrimonio_form(request):
             patrimonio.inventariante = inventariante
             patrimonio.save()
 
-            # --- RECARREGAR LISTAGEM APÓS SALVAR ---
-            busca = request.GET.get("busca", "")
-
-            queryset = Patrimonio.objects.filter(inventariante=inventariante)
-
-            if busca:
-                queryset = queryset.filter(descricao__icontains=busca)
-
-            paginator = Paginator(queryset.order_by("descricao"), 10)
-            page_number = request.GET.get("page")
-            lista_patrimonios = paginator.get_page(page_number)
+            patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
 
             tabela = render_to_string(
                 "app_inventario/partials/tabela_patrimonios.html",
-                {
-                    "lista_patrimonios": lista_patrimonios,
-                    "busca": busca,
-                },
+                {"patrimonios": patrimonios},
                 request=request
             )
             return HttpResponse(tabela)
@@ -255,36 +230,19 @@ def confirmar_exclusao_patrimonio(request, pk):
 @login_required
 @csrf_exempt
 def excluir_patrimonio(request, pk):
+    """ Exclui patrimônio e atualiza tabela HTMX """
     inventariante = get_object_or_404(Inventariante, user=request.user)
 
     if request.method in ["POST", "DELETE"]:
         patrimonio = get_object_or_404(Patrimonio, pk=pk, inventariante=inventariante)
         patrimonio.delete()
 
-        busca = request.GET.get("busca", "")
-        patrimonios = Patrimonio.objects.all().order_by("id")
-
-        if busca:
-            patrimonios = patrimonios.filter(
-                models.Q(patrimonio__icontains=busca) |
-                models.Q(descricao__icontains=busca) |
-                models.Q(setor__icontains=busca) |
-                models.Q(inventariante__user__first_name__icontains=busca) |
-                models.Q(inventariante__user__last_name__icontains=busca)
-            )
-
-        paginator = Paginator(patrimonios, 6)
-        page_number = request.GET.get("page", 1)
-        lista = paginator.get_page(page_number)
+        patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
 
         return render(
             request,
             "app_inventario/partials/tabela_patrimonios.html",
-            {
-                "lista_patrimonios": lista,
-                "busca": busca,
-            }
+            {"patrimonios": patrimonios}
         )
 
     return HttpResponse(status=405)
-
