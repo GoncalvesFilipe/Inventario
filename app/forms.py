@@ -1,19 +1,32 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from .models import Inventariante, Patrimonio
 
-
-class InventarianteUserForm(UserCreationForm):
+# FORMULÁRIO DE USUÁRIO + INVENTARIANTE (CRIAR / EDITAR)
+class InventarianteUserForm(forms.ModelForm):
     """
-    Formulário unificado para criar User + Inventariante.
+    Formulário unificado para criar e editar User + Inventariante.
     """
 
+    # -------- Campos adicionais do Inventariante --------
     matricula = forms.CharField(label="Matrícula", max_length=20)
     funcao = forms.CharField(label="Função/Cargo", max_length=50)
     telefone = forms.CharField(label="Telefone", max_length=15)
     presidente = forms.BooleanField(label="Presidente da Comissão", required=False)
     ano_atuacao = forms.IntegerField(label="Ano de Atuação", required=False)
+
+    # -------- Campos de Senha --------
+    password1 = forms.CharField(
+        label="Senha",
+        widget=forms.PasswordInput,
+        required=False
+    )
+    password2 = forms.CharField(
+        label="Confirme a Senha",
+        widget=forms.PasswordInput,
+        required=False
+    )
 
     class Meta:
         model = User
@@ -31,6 +44,29 @@ class InventarianteUserForm(UserCreationForm):
             "ano_atuacao",
         ]
 
+    # ---------------- Validação ----------------
+    def clean(self):
+        cleaned = super().clean()
+
+        p1 = cleaned.get("password1")
+        p2 = cleaned.get("password2")
+
+        # Cadastro novo
+        if not self.instance.pk:
+            if not p1 or not p2:
+                raise forms.ValidationError("As senhas são obrigatórias para novo usuário.")
+            if p1 != p2:
+                raise forms.ValidationError("As senhas não coincidem.")
+
+        # Edição
+        else:
+            if p1 or p2:
+                if p1 != p2:
+                    raise forms.ValidationError("As senhas não coincidem.")
+
+        return cleaned
+
+    # ---------------- Salvamento ----------------
     def save(self, commit=True):
         user = super().save(commit=False)
 
@@ -38,21 +74,29 @@ class InventarianteUserForm(UserCreationForm):
         user.last_name = self.cleaned_data["last_name"]
         user.email = self.cleaned_data["email"]
 
+        # Atualizar senha (apenas se digitada)
+        p1 = self.cleaned_data.get("password1")
+        if p1:
+            user.password = make_password(p1)
+
         if commit:
             user.save()
 
-            Inventariante.objects.create(
-                user=user,
-                matricula=self.cleaned_data["matricula"],
-                funcao=self.cleaned_data["funcao"],
-                telefone=self.cleaned_data["telefone"],
-                presidente=self.cleaned_data["presidente"],
-                ano_atuacao=self.cleaned_data["ano_atuacao"],
-            )
+            # Criar ou atualizar Inventariante
+            inventariante, created = Inventariante.objects.get_or_create(user=user)
+
+            inventariante.matricula = self.cleaned_data["matricula"]
+            inventariante.funcao = self.cleaned_data["funcao"]
+            inventariante.telefone = self.cleaned_data["telefone"]
+            inventariante.presidente = self.cleaned_data["presidente"]
+            inventariante.ano_atuacao = self.cleaned_data["ano_atuacao"]
+
+            inventariante.save()
 
         return user
 
 
+# FORMULÁRIO DE PATRIMÔNIO
 class PatrimonioForm(forms.ModelForm):
 
     class Meta:
@@ -92,20 +136,20 @@ class PatrimonioForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Aceita múltiplos formatos
+        # Aceita múltiplos formatos de data
         formatos_data = ["%Y-%m-%d", "%d/%m/%Y"]
         self.fields["data_documento"].input_formats = formatos_data
         self.fields["data_ateste"].input_formats = formatos_data
         self.fields["data_inventario"].input_formats = formatos_data
 
-        # Filtra inventariante pelo user logado
+        # Filtrar inventariante pelo usuário logado
         if user:
             try:
                 inventariante = Inventariante.objects.get(user=user)
                 self.fields["inventariante"].queryset = Inventariante.objects.filter(pk=inventariante.pk)
                 self.fields["inventariante"].initial = inventariante
 
-                # Campo apenas leitura
+                # Campo somente leitura
                 self.fields["inventariante"].disabled = True
                 self.fields["inventariante"].widget.attrs["readonly"] = True
 

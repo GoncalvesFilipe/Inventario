@@ -1,9 +1,13 @@
 from django.urls import path
 from . import views_admin
+from .views_admin import close_modal
 
 urlpatterns = [
     # Dashboard
     path('admin-dashboard/', views_admin.admin_dashboard, name='admin_dashboard'),
+    
+    # Modal
+    path("close-modal/", close_modal, name="close_modal"),
 
     # Listagens HTMX
     path('inventariantes/', views_admin.inventariantes_list, name='inventariantes_list'),
@@ -19,5 +23,15 @@ urlpatterns = [
     # Inventariante
     path('inventariante/adicionar/', views_admin.inventariante_add, name='inventariante_add'),
     path('inventariante/<int:pk>/editar/', views_admin.inventariante_edit, name='inventariante_edit'),
-    path('inventariante/<int:pk>/excluir/', views_admin.inventariante_delete, name='inventariante_delete'),
+
+    # (1) CARREGAR MODAL DE CONFIRMAÇÃO – GET
+    path('inventariante/<int:pk>/confirmar-exclusao/',
+     views_admin.inventariante_delete_confirm,
+     name='inventariante_delete_confirm'),
+
+    # (2) EXECUTAR EXCLUSÃO – POST
+    path('inventariante/<int:pk>/excluir/',
+     views_admin.inventariante_delete,
+     name='inventariante_delete'),
+
 ]

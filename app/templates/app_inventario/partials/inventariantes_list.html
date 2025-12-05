@@ -1,49 +1,66 @@
-<div class="mb-3">
-  <h5 class="fw-bold text-success">Inventariantes Cadastrados</h5>
+<div id="inventariante-list" hx-get="{% url 'inventariantes_list' %}" hx-trigger="reload from:body"
+  hx-target="#inventariante-list" hx-swap="innerHTML">
+
+  <h5 class="fw-bold text-success mb-3">Inventariantes Cadastrados</h5>
+
+  <div class="mb-3">
+    <button class="btn btn-success" hx-get="{% url 'inventariante_add' %}" hx-target="#modal-content"
+      hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalInventario">
+      Adicionar Inventariante
+    </button>
+  </div>
+
+  <!-- WRAPPER RESPONSIVO -->
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-success">
+        <tr>
+          <th>Matrícula</th>
+          <th>Nome</th>
+          <th class="d-none d-md-table-cell">Função</th>
+          <th class="d-none d-lg-table-cell">Telefone</th>
+          <th>E-mail</th>
+          <th class="d-none d-lg-table-cell">Ano Atuação</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for inv in inventariantes %}
+        <tr>
+          <td>{{ inv.matricula }}</td>
+
+          <td>
+            {% if inv.user.get_full_name %}
+            {{ inv.user.get_full_name }}
+            {% else %}
+            {{ inv.user.username }}
+            {% endif %}
+          </td>
+
+          <td class="d-none d-md-table-cell">{{ inv.funcao }}</td>
+          <td class="d-none d-lg-table-cell">{{ inv.telefone }}</td>
+          <td>{{ inv.user.email }}</td>
+          <td class="d-none d-lg-table-cell">{{ inv.ano_atuacao }}</td>
+
+          <td class="text-nowrap">
+            <button hx-get="{% url 'inventariante_edit' inv.pk %}" hx-target="#modal-content" hx-swap="innerHTML"
+              class="btn btn-outline-primary btn-sm me-1" data-bs-toggle="modal" data-bs-target="#modalInventario">
+              Editar
+            </button>
+
+            <button class="btn btn-danger btn-sm" hx-get="{% url 'inventariante_delete_confirm' inv.pk %}"
+              hx-target="#modal-content" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalInventario">
+              Excluir
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted">Nenhum inventariante cadastrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
-
-<table class="table table-hover align-middle">
-  <thead class="table-success">
-    <tr>
-      <th>Matrícula</th>
-      <th>Nome</th>
-      <th>Função</th>
-      <th>Telefone</th>
-      <th>E-mail</th>
-      <th>Ano Atuação</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {% for inv in usuarios %}
-    <tr>
-      <td>{{ inv.matricula }}</td>
-      <td>{{ inv.user.get_full_name|default:inv.user.username }}</td>
-      <td>{{ inv.funcao }}</td>
-      <td>{{ inv.telefone }}</td>
-      <td>{{ inv.email }}</td>
-      <td>{{ inv.ano_atuacao }}</td>
-
-      <td>
-        <!-- EDITAR -->
-        <button hx-get="{% url 'inventariante_edit' inv.pk %}" hx-target="#conteudo-admin" hx-swap="innerHTML"
-          class="btn btn-outline-primary btn-sm me-1">
-          Editar
-        </button>
-
-        <!-- EXCLUIR -->
-        <button hx-get="{% url 'inventariante_delete' inv.pk %}" hx-target="#conteudo-admin" hx-swap="innerHTML"
-          class="btn btn-outline-danger btn-sm">
-          Excluir
-        </button>
-      </td>
-    </tr>
-
-    {% empty %}
-    <tr>
-      <td colspan="7" class="text-center text-muted">Nenhum inventariante cadastrado.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
