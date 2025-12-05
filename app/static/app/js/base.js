@@ -7,42 +7,85 @@ document.body.addEventListener("htmx:configRequest", function (event) {
 
 
 /* ============================================================
-   FECHAR MODAL DO INVENTÁRIO VIA "HX-Trigger: closeModal"
+   FECHAR MODAIS VIA "HX-Trigger: closeModal"
 ============================================================ */
 document.body.addEventListener("closeModal", function () {
-    const modalEl = document.getElementById("modalInventario");
-    if (!modalEl) return;
 
-    let modal = bootstrap.Modal.getInstance(modalEl);
-    if (!modal) modal = new bootstrap.Modal(modalEl);
-    modal.hide();
+    const modais = [
+        "modalInventariante",
+        "modalPatrimonio",
+        "modalRegistro"
+    ];
+
+    modais.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        let modal = bootstrap.Modal.getInstance(el);
+        if (!modal) modal = new bootstrap.Modal(el);
+
+        modal.hide();
+    });
 });
 
 
 /* ============================================================
-   FECHAR MODAL APÓS SWAP — APENAS PARA modalInventario
+   ABRIR MODAL AUTOMATICAMENTE APÓS HTMX SWAP
 ============================================================ */
 document.body.addEventListener("htmx:afterSwap", function (event) {
 
     const target = event.detail.target;
 
-    // Aceita apenas swaps dentro do modalInventario
-    if (!["modal-content", "modal-inventario-body"].includes(target.id)) {
-        return;  // impede fechar o modalRegistro
+    if (target.id === "modal-inventariante-body") {
+        new bootstrap.Modal(document.getElementById("modalInventariante")).show();
     }
 
-    if (target.innerHTML.includes("close-modal")) {
-        document.body.dispatchEvent(new Event("closeModal"));
+    if (target.id === "modal-patrimonio-body") {
+        new bootstrap.Modal(document.getElementById("modalPatrimonio")).show();
+    }
+
+    if (target.id === "modal-registro-body") {
+        new bootstrap.Modal(document.getElementById("modalRegistro")).show();
     }
 });
 
 
 /* ============================================================
-   LIMPAR modalInventario AO FECHAR
+   LIMPAR OS MODAIS AO FECHAR
 ============================================================ */
 document.addEventListener("hidden.bs.modal", function (event) {
-    if (event.target.id === "modalInventario") {
-        const body = document.getElementById("modal-inventario-body");
+
+    const id = event.target.id;
+
+    const map = {
+        modalInventariante: "modal-inventariante-body",
+        modalPatrimonio: "modal-patrimonio-body",
+        modalRegistro: "modal-registro-body"
+    };
+
+    if (map[id]) {
+        const body = document.getElementById(map[id]);
         if (body) body.innerHTML = "";
     }
+});
+
+/* ============================================================
+   CORREÇÃO GLOBAL – REMOVER BACKDROP PRESO E DESCONGELAR TELA
+============================================================ */
+document.addEventListener("hidden.bs.modal", function () {
+
+    // Remover qualquer backdrop fantasma
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+        backdrop.remove();
+    });
+
+    // Garantir que o body volte ao normal
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+
+    // Garantir que o scroll não fique travado
+    setTimeout(() => {
+        document.body.classList.remove('modal-open');
+    }, 10);
 });

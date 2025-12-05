@@ -2,46 +2,32 @@
   <h5 class="fw-bold text-success">Lista de Patrimônios</h5>
 
   {% if request.user.is_superuser %}
-      <p class="text-secondary">
-        Visualizando: <strong>TODOS os patrimônios</strong>
-      </p>
+  <p class="text-secondary">
+    Visualizando: <strong>Todos os patrimônios</strong>
+  </p>
   {% else %}
-      <p class="text-secondary">
-        Visualizando patrimônios de: 
-        <strong>{{ request.user.inventariante }}</strong>
-      </p>
+  <p class="text-secondary">
+    Visualizando patrimônios de:
+    <strong>{{ request.user.inventariante }}</strong>
+  </p>
   {% endif %}
 
   <div class="input-group mb-3 mt-3">
-    <input 
-      type="text" 
-      class="form-control" 
-      placeholder="Buscar Patrimônio (Nº, Descrição, Setor, Dependência...)" 
-      name="q" 
-      hx-get="{% url 'patrimonio_list' %}"
-      hx-target="#conteudo-admin"  
-      hx-swap="innerHTML"
-      hx-trigger="keyup changed delay:750ms, search" 
-      hx-indicator="#loading-indicator"
-      value="{{ search_query }}"
-    >
+    <input type="text" class="form-control" placeholder="Buscar Patrimônio (Nº, Descrição, Setor, Dependência...)"
+      name="q" hx-get="{% url 'patrimonio_list' %}" hx-target="#conteudo-admin" hx-swap="innerHTML"
+      hx-trigger="keyup changed delay:750ms, search" hx-indicator="#loading-indicator" value="{{ search_query }}">
     <button class="btn btn-outline-secondary" type="button" id="button-addon2">
-      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="loading-indicator" style="display:none;"></span>
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="loading-indicator"
+        style="display:none;"></span>
       <i class="bi bi-search"></i>
     </button>
   </div>
-  <button
-    class="btn btn-success btn-sm mt-2"
-    hx-get="{% url 'patrimonio_add' %}"
-    hx-target="#modal-patrimonio-body"
-    hx-swap="innerHTML"
-    data-bs-toggle="modal"
-    data-bs-target="#modalPatrimonio"
-  >
+  <button class="btn btn-success btn-sm mt-2" hx-get="{% url 'patrimonio_add' %}" hx-target="#modal-patrimonio-body"
+    hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
     Adicionar Patrimônio
   </button>
 </div>
 
 <div id="conteudo-patrimonios">
-  {% include 'app_inventario/partials/tabela_e_paginacao.html' %} 
+  {% include 'app_inventario/partials/tabela_e_paginacao.html' %}
 </div>

@@ -1,81 +1,71 @@
 {% load form_filters %}
 
-<div class="modal-header">
-  <h5 class="modal-title text-success fw-semibold">
-    {% if modo_edicao %}Editar Patrimônio{% else %}Novo Patrimônio{% endif %}
-  </h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
+<div class="p-3">
 
-<div class="modal-body">
+  <p class="text-muted mb-3 text-center">
+    {% if modo_edicao %}
+    Atualize as informações do patrimônio.
+    {% else %}
+    Preencha os dados para cadastrar um novo patrimônio.
+    {% endif %}
+  </p>
 
   {% if form.non_field_errors %}
-  <div class="alert alert-danger">
-    {{ form.non_field_errors }}
+  <div class="alert alert-danger py-2 small">
+    {% for error in form.non_field_errors %}
+    ⚠️ {{ error }}
+    {% endfor %}
   </div>
   {% endif %}
 
-  <form
-    method="post"
+  <form method="POST"
     hx-post="{% if modo_edicao %}{% url 'patrimonio_edit' patrimonio.id %}{% else %}{% url 'patrimonio_add' %}{% endif %}"
-    hx-target="#modal-patrimonio-body"
-    hx-swap="innerHTML"
-    class="p-1"
-  >
+    hx-target="#modal-patrimonio-body" hx-swap="innerHTML" novalidate>
+
     {% csrf_token %}
 
     {% for field in form %}
-    <div class="mb-3">
 
-      <label class="form-label fw-semibold" for="{{ field.id_for_label }}">
+    {% if field.field.widget.input_type == "checkbox" %}
+
+    <div class="form-check mb-3">
+      {{ field|add_class:"form-check-input" }}
+      <label class="form-check-label fw-semibold" for="{{ field.id_for_label }}">
         {{ field.label }}
       </label>
-
-      {% if field.field.widget.input_type == "checkbox" %}
-
-      <div class="form-check">
-        {{ field|add_class:"form-check-input" }}
-        <label class="form-check-label" for="{{ field.id_for_label }}">
-          {{ field.help_text }}
-        </label>
-      </div>
-
-      {% else %}
-
-        {% if field.errors %}
-          {{ field|add_class:"form-control is-invalid" }}
-          <div class="invalid-feedback">
-            {{ field.errors.as_text|slice:"2:" }}
-          </div>
-        {% else %}
-
-          {# 🔥 AJUSTE IMPORTANTE — Não remover value dos campos date #}
-          {% if field.field.widget.input_type == "date" %}
-              {{ field|add_class:"form-control" }}
-          {% else %}
-              {{ field|add_class:"form-control"|add_placeholder:field.label }}
-          {% endif %}
-
-        {% endif %}
-
-        {% if field.help_text %}
-        <div class="form-text">{{ field.help_text }}</div>
-        {% endif %}
-
+      {% if field.errors %}
+      <div class="text-danger small">{{ field.errors.0 }}</div>
       {% endif %}
-
     </div>
+
+    {% else %}
+
+    <div class="form-floating mb-3">
+      {{ field|add_class:"form-control"|add_placeholder:field.label }}
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+      {% if field.errors %}
+      <div class="invalid-feedback d-block">
+        {{ field.errors.0 }}
+      </div>
+      {% endif %}
+    </div>
+
+    {% endif %}
+
     {% endfor %}
 
-    <div class="d-flex justify-content-end mt-4 gap-2">
-      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-        Cancelar
+    <div class="d-flex justify-content-between mt-4">
+
+      <button type="button" data-bs-dismiss="modal" class="btn btn-outline-success w-50 me-2 rounded-3 py-2">
+        Fechar
       </button>
 
-      <button class="btn btn-success px-4" type="submit">
-        Salvar
+      <button type="submit" class="btn btn-primary w-50 rounded-3 py-2">
+        {% if modo_edicao %}Salvar Alterações{% else %}Cadastrar{% endif %}
       </button>
     </div>
 
   </form>
+
 </div>
