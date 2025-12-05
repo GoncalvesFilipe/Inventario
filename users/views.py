@@ -1,38 +1,54 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from app.forms import InventarianteUserForm
 
-
-# VIEW DE REGISTRO
+#  REGISTRO (User + Inventariante)
 def register_view(request):
+    """
+    Cadastro unificado:
+    - Cria User
+    - Cria Inventariante vinculado via OneToOne
+    """
+
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = InventarianteUserForm(request.POST)
+
         if form.is_valid():
+            # O MÉTODO save() DO FORM JÁ:
+            # - cria User
+            # - cria Inventariante
             user = form.save()
 
-            # Autentica e faz login automaticamente
+            # Login automático após o cadastro
             login(request, user)
 
-            # Se a requisição veio pelo HTMX:
+            # Caso seja requisição HTMX → retorna somente o conteudo
             if request.headers.get("HX-Request"):
-                return HttpResponse("<p class='text-success'>Usuário registrado com sucesso!</p>")
+                return HttpResponse(
+                    "<p class='text-success fw-bold'>Cadastro concluído com sucesso!</p>"
+                )
 
-            return redirect("login")
-        else:
-            # Retorna somente o formulário para substituir via HTMX
-            if request.headers.get("HX-Request"):
-                return render(request, "users/register.html", {"form": form})
+            return redirect("index")  # usuário já logado
+
+        # Se houver erro e for HTMX → devolve apenas o formulário
+        if request.headers.get("HX-Request"):
+            return render(request, "users/register.html", {"form": form})
 
     else:
-        form = UserCreationForm()
+        form = InventarianteUserForm()
 
     return render(request, "users/register.html", {"form": form})
 
 
-# VIEW DE LOGIN 
+#  LOGIN
 def login_view(request):
+    """
+    Tela de login tradicional usando AuthenticationForm
+    """
+
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
 
@@ -40,14 +56,13 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
 
-            if request.headers.get("HX-Request"):
-                return HttpResponse("<p class='text-success'>Login realizado com sucesso!</p>")
+            # Redirecionamento após login
+            next_url = request.POST.get("next") or "index"
+            return redirect(next_url)
 
-            return redirect("painel_admin")  # redirecione para o painel correto
-
-        else:
-            if request.headers.get("HX-Request"):
-                return render(request, "users/login.html", {"form": form})
+        # Erro via HTMX
+        if request.headers.get("HX-Request"):
+            return render(request, "users/login.html", {"form": form})
 
     else:
         form = AuthenticationForm()
@@ -55,13 +70,10 @@ def login_view(request):
     return render(request, "users/login.html", {"form": form})
 
 
-# VIEW DE LOGOUT
-@login_required
+#  LOGOUT
 def logout_view(request):
+    """
+    Finaliza sessão e envia usuário ao login
+    """
     logout(request)
-
-    # Caso seja logout via HTMX, devolve um fragmento atualizado
-    if request.headers.get("HX-Request"):
-        return HttpResponse("<p class='text-info'>Você saiu do sistema.</p>")
-
     return redirect("login")

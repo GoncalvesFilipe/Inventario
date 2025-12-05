@@ -114,6 +114,19 @@
   </div>
   <!-- FIM DO MODAL -->
 
+  <!-- MODAL DINÂMICO PARA EDITAR / EXCLUIR -->
+  <div class="modal fade" id="modalInventario" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content" id="modal-content">
+        <!-- Conteúdo carregado via HTMX -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ÁREA GLOBAL PARA MODAIS DINÂMICOS -->
+  <div id="modal-area"></div>
+
+
   {% bootstrap_javascript %}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -126,6 +139,9 @@
   </script>
 
   <script src="{% static 'app/js/base.js' %}"></script>
+
+  <script src="{% static 'js/modals.js' %}"></script>
+
 
   {% block extra_js %}{% endblock %}
 

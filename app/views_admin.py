@@ -3,9 +3,9 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-
 from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
+from .decorators import admin_required
 
 
 # ======= DASHBOARD =======
@@ -13,6 +13,10 @@ from .models import Inventariante, Patrimonio
 def admin_dashboard(request):
     """ Página inicial do painel administrativo """
     return render(request, "app_inventario/admin_dashboard.html")
+
+# ======= MODAL RESTRIÇÃO =======
+def close_modal(request):
+    return HttpResponse("")
 
 
 # ======= INVENTARIANTES =======
@@ -26,12 +30,20 @@ def inventariantes_list(request):
         {"inventariantes": inventariantes}
     )
 
-
 @login_required
+def inventariante_list_partial(request):
+    inventariantes = Inventariante.objects.all()
+    return render(request, "app_inventario/partials/inventariante_list.html", {"inventariantes": inventariantes})
+
+
+@admin_required
 def inventariante_add(request):
     """
-    Cria um inventariante.
-    Usa InventarianteUserForm, que cria User + Inventariante.
+    Cadastro via painel admin (HTMX):
+    - Cria User
+    - Cria Inventariante
+    - NÃO faz login
+    - Atualiza a lista via HTMX
     """
     if request.method == "POST":
         form = InventarianteUserForm(request.POST)
@@ -39,33 +51,35 @@ def inventariante_add(request):
         if form.is_valid():
             form.save()
 
-            # Recarrega lista após salvar
+            # Lista atualizada
             inventariantes = Inventariante.objects.all()
             html = render_to_string(
                 "app_inventario/partials/inventariantes_list.html",
                 {"inventariantes": inventariantes},
                 request=request
             )
+
             return HttpResponse(html)
 
-        # Caso erro, recarrega o formulário com erros
+        # Em caso de erro → retorna o próprio formulário preenchido
         html = render_to_string(
-            "app_inventario/partials/form_inventariante.html",
+            "app_inventario/partials/inventariante_form.html",
             {"form": form},
             request=request
         )
         return HttpResponse(html)
 
-    # GET → mostra formulário vazio
+    # GET → formulário vazio
     form = InventarianteUserForm()
-    return render(request, "app_inventario/partials/form_inventariante.html", {"form": form})
+    return render(
+        request,
+        "app_inventario/partials/inventariante_form.html",
+        {"form": form}
+    )
 
 
-@login_required
+@admin_required
 def inventariante_edit(request, pk):
-    """
-    Edita User + Inventariante no mesmo formulário unificado.
-    """
     inventariante = get_object_or_404(Inventariante, pk=pk)
     user = inventariante.user
 
@@ -73,21 +87,31 @@ def inventariante_edit(request, pk):
         form = InventarianteUserForm(request.POST, instance=user)
 
         if form.is_valid():
-            # Salva User
-            user = form.save()
+            form.save()  # já salva User + Inventariante
 
-            # Atualiza Inventariante
-            inventariante.matricula = form.cleaned_data["matricula"]
-            inventariante.funcao = form.cleaned_data["funcao"]
-            inventariante.telefone = form.cleaned_data["telefone"]
-            inventariante.presidente = form.cleaned_data["presidente"]
-            inventariante.ano_atuacao = form.cleaned_data["ano_atuacao"]
-            inventariante.save()
+            if request.headers.get("HX-Request"):
+                return HttpResponse("""
+                <script>
+                    const modalEl = document.getElementById('modalInventario');
+                    if (modalEl) {
+                        const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.hide();
+                    }
+                    htmx.trigger('#inventariante-list', 'reload');
+                </script>
+                """)
 
-            return redirect("inventariantes_list")
+
+            return redirect("inventariante_list")
+
+        # Form inválido → re-renderiza modal via HTMX
+        return render(
+            request,
+            "app_inventario/partials/inventariante_edit_form.html",
+            {"form": form, "inventariante": inventariante}
+        )
 
     else:
-        # Preenche com valores do Inventariante
         form = InventarianteUserForm(
             instance=user,
             initial={
@@ -99,15 +123,43 @@ def inventariante_edit(request, pk):
             }
         )
 
-    return render(request, "app_inventario/partials/form_inventariante.html", {"form": form})
-
-
-@login_required
-def inventariante_delete(request, pk):
-    """ Deleta o inventariante e o usuário correspondente """
+    return render(
+        request,
+        "app_inventario/partials/inventariante_edit_form.html",
+        {"form": form, "inventariante": inventariante}
+    )
+    
+@admin_required
+def inventariante_delete_confirm(request, pk):
     inventariante = get_object_or_404(Inventariante, pk=pk)
-    inventariante.user.delete()
-    return redirect("inventariantes_list")
+    return render(request, 'app_inventario/partials/inventariante_delete_confirm.html', {
+        'inventariante': inventariante
+    })
+
+@admin_required
+def inventariante_delete(request, pk):
+    inventariante = get_object_or_404(Inventariante, pk=pk)
+
+    if request.method == "POST":
+        # Exclui o usuário vinculado
+        inventariante.user.delete()
+        inventariante.delete()
+
+        # Atualiza a lista de inventariantes
+        inventariantes = Inventariante.objects.all()
+        html = render_to_string(
+            "app_inventario/partials/inventariantes_list.html",
+            {"inventariantes": inventariantes},
+            request=request
+        )
+
+        # Retorna HTML + evento HTMX para fechar o modal
+        response = HttpResponse(html)
+        response.headers["HX-Trigger"] = "closeModal reloadInventariantes"
+
+        return response
+
+    return HttpResponse(status=405)
 
 
 # ======= PATRIMÔNIO =======
