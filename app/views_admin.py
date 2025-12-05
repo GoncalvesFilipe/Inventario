@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Q
 
 from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
@@ -120,15 +121,48 @@ def inventariante_delete(request, pk):
 # LISTA DE PATRIMÔNIOS
 @login_required
 def patrimonio_list(request):
-    patrimonios = Patrimonio.objects.all().order_by('id')
-    paginator = Paginator(patrimonios, 4)
-    pagina = request.GET.get('page', 1)
-    lista = paginator.get_page(pagina)
+    search_query = request.GET.get('q')
+    pagina_numero = request.GET.get('page', 1)
 
+    if request.user.is_superuser:
+        patrimonios = Patrimonio.objects.all()
+    else:
+        inventariante = get_object_or_404(Inventariante, user=request.user)
+        patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
+        
+    # 3. Aplicar o filtro de busca
+    if search_query:
+        # CORREÇÃO: Usando os campos reais do modelo Patrimonio:
+        patrimonios = patrimonios.filter(
+            Q(patrimonio__icontains=search_query) |      # <<< NOVO: Usa o campo 'patrimonio' (o número)
+            Q(descricao__icontains=search_query) |       # <<< OK
+            Q(setor__icontains=search_query) |           # <<< NOVO: Usa o campo 'setor'
+            Q(dependencia__icontains=search_query)       # <<< NOVO: Usa 'dependencia' no lugar de 'localizacao'
+        )
+    
+    patrimonios = patrimonios.order_by('id')
+
+    paginator = Paginator(patrimonios, 4)
+    
+    try:
+        lista_patrimonios = paginator.page(pagina_numero)
+    except PageNotAnInteger:
+        lista_patrimonios = paginator.page(1)
+    except EmptyPage:
+        lista_patrimonios = paginator.page(paginator.num_pages)
+        
+    context = {
+        "pagina": "patrimonio", 
+        "lista_patrimonios": lista_patrimonios,
+        "search_query": search_query or "", 
+    }
+
+    # REMOVEMOS O 'if request.htmx:'
+    # A view SEMPRE retorna o template principal (patrimonio_list.html)
     return render(
         request,
         "app_inventario/patrimonio_list.html",
-        {"pagina": "patrimonio", "lista_patrimonios": lista}
+        context
     )
 
 
