@@ -1,11 +1,6 @@
 {% load django_bootstrap5 %}
 
-<div class="modal-header bg-success text-white rounded-top-4">
-  <h5 class="modal-title">Editar Inventariante</h5>
-  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-</div>
-
-<div id="modal-body" class="modal-body">
+<div id="modal-inventariante-body" class="modal-body">
 
   <div class="p-3">
     <p class="text-muted mb-3 text-center">Atualize os dados do inventariante abaixo.</p>
@@ -18,8 +13,15 @@
     </div>
     {% endif %}
 
-    <form method="POST" hx-post="{% url 'inventariante_edit' inventariante.pk %}" hx-target="#modal-body"
-      hx-swap="innerHTML" novalidate>
+    <form method="POST"
+      hx-post="{% url 'inventariante_edit' inventariante.pk %}"
+      hx-target="this"
+      hx-swap="none"
+      hx-on="inventarianteAtualizado: 
+             bootstrap.Modal.getInstance(document.getElementById('modalInventariante')).hide();
+             location.reload();"
+      novalidate>
+
 
       {% csrf_token %}
 
@@ -95,7 +97,8 @@
 
       <!-- PRESIDENTE -->
       <div class="form-check mb-3">
-        <input type="checkbox" name="presidente" id="id_presidente" class="form-check-input" {% if form.presidente.value%}checked{% endif %}>
+        <input type="checkbox" name="presidente" id="id_presidente" class="form-check-input" 
+        {% if form.presidente.value%}checked{% endif %}>
         <label for="id_presidente" class="form-check-label">Presidente da Comissão</label>
       </div>
 

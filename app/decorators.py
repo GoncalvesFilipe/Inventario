@@ -1,32 +1,33 @@
+from django.shortcuts import render
+from django.http import HttpResponseForbidden, HttpResponse
 
-from functools import wraps
-from django.http import HttpResponse, HttpResponseForbidden
-from django.template.loader import render_to_string
+def admin_required(view_func):
+    def wrapper(request, *args, **kwargs):
 
-def admin_required(function):
-    """
-    Permite acesso apenas a usuários admin (is_staff=True).
-    Se for HTMX e o usuário não puder, retorna um modal.
-    """
-    @wraps(function)
-    def wrap(request, *args, **kwargs):
+        is_presidente = (
+            hasattr(request.user, "inventariante")
+            and request.user.inventariante.presidente
+        )
 
-        if not request.user.is_authenticated:
-            return HttpResponseForbidden("Usuário não autenticado.")
+        # Usuário sem permissão
+        if not request.user.is_superuser and not is_presidente:
 
-        if not request.user.is_staff:
-
-            # Se for HTMX, retorna modal de erro
+            # --- Requisição HTMX (modal) ---
             if request.headers.get("HX-Request"):
-                html = render_to_string("modals/erro_permissao.html")
-                response = HttpResponse(html)
-                response["HX-Retarget"] = "#modal-area"
-                response["HX-Reswap"] = "innerHTML"
-                return response
+                html = render(
+                    request,
+                    "app_inventario/modals/modal_acesso_negado.html"
+                )
+                # Retorna 200 para o HTMX abrir o modal corretamente
+                return HttpResponse(html.content)
 
-            # Se for acesso normal, retorna Forbidden
-            return HttpResponseForbidden("Acesso negado.")
+            # --- Requisição normal (fora do HTMX) ---
+            html = render(
+                request,
+                "app_inventario/modals/modal_acesso_negado.html"
+            )
+            return HttpResponseForbidden(html.content)
 
-        return function(request, *args, **kwargs)
+        return view_func(request, *args, **kwargs)
 
-    return wrap
+    return wrapper

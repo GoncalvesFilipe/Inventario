@@ -1,7 +1,8 @@
 document.addEventListener("htmx:afterSwap", (event) => {
-    // Verifica se a partial carregada contém o modal
-    const modalEl = document.getElementById("modalInventario");
-    if (modalEl) {
-        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    if (event.detail.target.id === "modal-inventariante-body") {
+        const modal = bootstrap.Modal.getOrCreateInstance(
+            document.getElementById("modalInventariante")
+        );
+        modal.show();
     }
 });

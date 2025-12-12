@@ -1,13 +1,31 @@
-<div id="inventariante-list" hx-get="{% url 'inventariantes_list' %}" hx-trigger="reload from:body"
-  hx-target="#inventariante-list" hx-swap="innerHTML">
+<div id="inventariante-list"
+     hx-get="{% url 'inventariantes_list' %}" 
+     hx-trigger="reload from:body"
+     hx-target="#inventariante-list" 
+     hx-swap="innerHTML">
 
   <h5 class="fw-bold text-success mb-3">Inventariantes Cadastrados</h5>
 
   <div class="mb-3">
-    <button class="btn btn-success" hx-get="{% url 'inventariante_add' %}" hx-target="#modal-inventariante-body"
-      hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalInventariante">
+    {% if user.is_superuser or user.inventariante.presidente %}
+    <button class="btn btn-success" 
+            hx-get="{% url 'inventariante_add' %}" 
+            hx-target="#modal-inventariante-body"
+            hx-swap="innerHTML" 
+            data-bs-toggle="modal" 
+            data-bs-target="#modalInventariante">
       Adicionar Inventariante
     </button>
+    {% else %}
+    <button class="btn btn-success" 
+            hx-get="{% url 'inventariante_add' %}" 
+            hx-target="#modal-erro-body"
+            hx-swap="innerHTML" 
+            data-bs-toggle="modal" 
+            data-bs-target="#modalErro">
+      Adicionar Inventariante
+    </button>
+    {% endif %}
   </div>
 
   <!-- WRAPPER RESPONSIVO -->
@@ -24,41 +42,63 @@
           <th>Ações</th>
         </tr>
       </thead>
-
       <tbody>
         {% for inv in inventariantes %}
         <tr>
           <td>{{ inv.matricula }}</td>
-
           <td>
             {% if inv.user.get_full_name %}
-            {{ inv.user.get_full_name }}
+              {{ inv.user.get_full_name }}
             {% else %}
-            {{ inv.user.username }}
+              {{ inv.user.username }}
             {% endif %}
           </td>
-
           <td class="d-none d-md-table-cell">{{ inv.funcao }}</td>
           <td class="d-none d-lg-table-cell">{{ inv.telefone }}</td>
           <td>{{ inv.user.email }}</td>
           <td class="d-none d-lg-table-cell">{{ inv.ano_atuacao }}</td>
-
           <td class="text-nowrap">
-
             <!-- BOTÃO EDITAR -->
-            <button class="btn btn-outline-primary btn-sm me-1" hx-get="{% url 'inventariante_edit' inv.pk %}"
-              hx-target="#modal-inventariante-body" hx-swap="innerHTML" data-bs-toggle="modal"
-              data-bs-target="#modalInventariante">
+            {% if user.is_superuser or user.inventariante.presidente %}
+            <button class="btn btn-outline-primary btn-sm me-1"
+                    hx-get="{% url 'inventariante_edit' inv.pk %}"
+                    hx-target="#modal-inventariante-body" 
+                    hx-swap="innerHTML" 
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalInventariante">
               Editar
             </button>
+            {% else %}
+            <button class="btn btn-outline-primary btn-sm me-1" 
+                    hx-get="{% url 'inventariante_edit' inv.pk %}"
+                    hx-target="#modal-erro-body" 
+                    hx-swap="innerHTML" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalErro">
+              Editar
+            </button>
+            {% endif %}
 
             <!-- BOTÃO EXCLUIR -->
-            <button class="btn btn-danger btn-sm" hx-get="{% url 'inventariante_delete_confirm' inv.pk %}"
-              hx-target="#modal-inventariante-body" hx-swap="innerHTML" data-bs-toggle="modal"
-              data-bs-target="#modalInventariante">
+            {% if user.is_superuser or user.inventariante.presidente %}
+            <button class="btn btn-danger btn-sm" 
+                    hx-get="{% url 'inventariante_delete_confirm' inv.pk %}"
+                    hx-target="#modal-confirm-body" 
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalConfirm">
               Excluir
             </button>
-
+            {% else %}
+            <button class="btn btn-danger btn-sm" 
+                    hx-get="{% url 'inventariante_delete_confirm' inv.pk %}"
+                    hx-target="#modal-erro-body" 
+                    hx-swap="innerHTML" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#modalErro">
+              Excluir
+            </button>
+            {% endif %}
           </td>
         </tr>
         {% empty %}
@@ -72,3 +112,4 @@
     </table>
   </div>
 </div>
+

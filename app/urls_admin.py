@@ -2,36 +2,36 @@ from django.urls import path
 from . import views_admin
 from .views_admin import close_modal
 
+# Definição das rotas da aplicação relacionadas à administração.
 urlpatterns = [
-    # Dashboard
+    # Rota para o painel administrativo principal (dashboard).
     path('admin-dashboard/', views_admin.admin_dashboard, name='admin_dashboard'),
     
-    # Modal
+    # Rota para fechamento de modal (interação dinâmica).
     path("close-modal/", close_modal, name="close_modal"),
 
-    # Listagens HTMX
+    # Rotas para listagens dinâmicas via HTMX.
     path('inventariantes/', views_admin.inventariantes_list, name='inventariantes_list'),
     path('patrimonios/', views_admin.patrimonio_list, name='patrimonio_list'),
 
-    # Patrimônio
-    path('patrimonio/form/', views_admin.patrimonio_form, name='patrimonio_form'),
-    path('patrimonio/add/', views_admin.patrimonio_add, name='patrimonio_add'),
-    path('patrimonio/<int:pk>/editar/', views_admin.patrimonio_edit, name='patrimonio_edit'),
-    path('patrimonio/<int:pk>/confirmar-exclusao/', views_admin.confirmar_exclusao_patrimonio, name='confirmar_exclusao_patrimonio'),
-    path('patrimonio/<int:pk>/excluir/', views_admin.excluir_patrimonio, name='excluir_patrimonio'),
+    # Rotas relacionadas ao gerenciamento de patrimônio.
+    path('patrimonio/form/', views_admin.patrimonio_form, name='patrimonio_form'),  # Exibição do formulário.
+    path('patrimonio/add/', views_admin.patrimonio_add, name='patrimonio_add'),  # Inclusão de novo patrimônio.
+    path('patrimonio/<int:pk>/editar/', views_admin.patrimonio_edit, name='patrimonio_edit'),  # Edição de patrimônio existente.
+    path('patrimonio/<int:pk>/confirmar-exclusao/', views_admin.confirmar_exclusao_patrimonio, name='confirmar_exclusao_patrimonio'),  # Confirmação de exclusão.
+    path('patrimonio/<int:pk>/excluir/', views_admin.excluir_patrimonio, name='excluir_patrimonio'),  # Exclusão definitiva.
 
-    # Inventariante
-    path('inventariante/adicionar/', views_admin.inventariante_add, name='inventariante_add'),
-    path('inventariante/<int:pk>/editar/', views_admin.inventariante_edit, name='inventariante_edit'),
+    # Rotas relacionadas ao gerenciamento de inventariantes.
+    path('inventariante/adicionar/', views_admin.inventariante_add, name='inventariante_add'),  # Inclusão de novo inventariante.
+    path('inventariante/<int:pk>/editar/', views_admin.inventariante_edit, name='inventariante_edit'),  # Edição de inventariante existente.
 
-    # (1) CARREGAR MODAL DE CONFIRMAÇÃO – GET
+    # (1) Rota para carregar modal de confirmação de exclusão (requisição GET).
     path('inventariante/<int:pk>/confirmar-exclusao/',
-     views_admin.inventariante_delete_confirm,
-     name='inventariante_delete_confirm'),
+         views_admin.inventariante_delete_confirm,
+         name='inventariante_delete_confirm'),
 
-    # (2) EXECUTAR EXCLUSÃO – POST
+    # (2) Rota para executar a exclusão de inventariante (requisição POST).
     path('inventariante/<int:pk>/excluir/',
-     views_admin.inventariante_delete,
-     name='inventariante_delete'),
-
+         views_admin.inventariante_delete,
+         name='inventariante_delete'),
 ]

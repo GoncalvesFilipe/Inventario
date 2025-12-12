@@ -3,18 +3,18 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import Inventariante, Patrimonio
 
+
 # FORMULÁRIO DE USUÁRIO + INVENTARIANTE (CRIAR / EDITAR)
 class InventarianteUserForm(forms.ModelForm):
     """
     Formulário unificado para criar e editar User + Inventariante.
     """
 
-    # -------- Campos adicionais do Inventariante --------
-    matricula = forms.CharField(label="Matrícula", max_length=20)
-    funcao = forms.CharField(label="Função/Cargo", max_length=50)
-    telefone = forms.CharField(label="Telefone", max_length=15)
-    presidente = forms.BooleanField(label="Presidente da Comissão", required=False)
-    ano_atuacao = forms.IntegerField(label="Ano de Atuação", required=False)
+    # -------- Campos do User --------
+    username = forms.CharField(label="Usuário")
+    first_name = forms.CharField(label="Nome")
+    last_name = forms.CharField(label="Sobrenome")
+    email = forms.EmailField(label="E-mail")
 
     # -------- Campos de Senha --------
     password1 = forms.CharField(
@@ -29,14 +29,8 @@ class InventarianteUserForm(forms.ModelForm):
     )
 
     class Meta:
-        model = User
+        model = Inventariante
         fields = [
-            "username",
-            "first_name",
-            "last_name",
-            "email",
-            "password1",
-            "password2",
             "matricula",
             "funcao",
             "telefone",
@@ -44,56 +38,70 @@ class InventarianteUserForm(forms.ModelForm):
             "ano_atuacao",
         ]
 
+    # ---------------- Inicialização ----------------
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_instance = user
+
+        if user:
+            self.fields["username"].initial = user.username
+            self.fields["first_name"].initial = user.first_name
+            self.fields["last_name"].initial = user.last_name
+            self.fields["email"].initial = user.email
+
     # ---------------- Validação ----------------
     def clean(self):
         cleaned = super().clean()
-
         p1 = cleaned.get("password1")
         p2 = cleaned.get("password2")
 
-        # Cadastro novo
-        if not self.instance.pk:
+        if not self.user_instance or not self.user_instance.pk:
+            # Cadastro novo
             if not p1 or not p2:
                 raise forms.ValidationError("As senhas são obrigatórias para novo usuário.")
             if p1 != p2:
                 raise forms.ValidationError("As senhas não coincidem.")
-
-        # Edição
         else:
+            # Edição
             if p1 or p2:
                 if p1 != p2:
                     raise forms.ValidationError("As senhas não coincidem.")
 
         return cleaned
 
+    def clean_matricula(self):
+        matricula = self.cleaned_data.get("matricula")
+        qs = Inventariante.objects.filter(matricula=matricula)
+
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError("Já existe um inventariante com esta matrícula.")
+
+        return matricula
+
     # ---------------- Salvamento ----------------
     def save(self, commit=True):
-        user = super().save(commit=False)
+        inventariante = super().save(commit=False)
+        user = self.user_instance
 
+        # Atualizar dados do User
+        user.username = self.cleaned_data["username"]
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.email = self.cleaned_data["email"]
 
-        # Atualizar senha (apenas se digitada)
         p1 = self.cleaned_data.get("password1")
         if p1:
             user.password = make_password(p1)
 
         if commit:
             user.save()
-
-            # Criar ou atualizar Inventariante
-            inventariante, created = Inventariante.objects.get_or_create(user=user)
-
-            inventariante.matricula = self.cleaned_data["matricula"]
-            inventariante.funcao = self.cleaned_data["funcao"]
-            inventariante.telefone = self.cleaned_data["telefone"]
-            inventariante.presidente = self.cleaned_data["presidente"]
-            inventariante.ano_atuacao = self.cleaned_data["ano_atuacao"]
-
+            inventariante.user = user
             inventariante.save()
 
-        return user
+        return inventariante
 
 
 # FORMULÁRIO DE PATRIMÔNIO
