@@ -11,7 +11,6 @@ from .models import Inventariante, Patrimonio
 from .decorators import admin_required
 from django_htmx.http import trigger_client_event
 
-
 # ==========================================================
 # DASHBOARD ADMINISTRATIVO
 # Função responsável por apresentar a página inicial do painel
@@ -60,7 +59,6 @@ def inventariante_list_partial(request):
         {"inventariantes": inventariantes}
     )
 
-
 # ==========================================================
 # ADIÇÃO DE INVENTARIANTE
 # Implementa o fluxo completo para criação de usuário vinculado
@@ -75,13 +73,13 @@ def inventariante_add(request):
         if form.is_valid():
             form.save()
 
-            # Retorna resposta sem corpo para evitar inserções indevidas no modal.
-            response = HttpResponse(status=204)
-            response["HX-Trigger"] = json.dumps({
-                "reloadInventariantes": True,  # Solicita recarga da listagem
-                "closeModal": True             # Solicita encerramento do modal
-            })
-            return response
+            # Renderiza um HTML de sucesso dentro do modal
+            html = render_to_string(
+                "app_inventario/partials/inventariante_success.html",
+                {"mensagem": "Usuário inventariante salvo com sucesso!"},
+                request=request
+            )
+            return HttpResponse(html)
 
         # Reapresenta o formulário com erros no contexto do modal
         html = render_to_string(
@@ -107,47 +105,53 @@ def inventariante_add(request):
 # ==========================================================
 @admin_required
 def inventariante_edit(request, pk):
-    """
-    Edita os dados de um inventariante específico.
-    - request: objeto da requisição HTTP.
-    - pk: chave primária do inventariante.
-    """
-
-    # Recupera o inventariante ou retorna erro 404 se não encontrado.
     inventariante = get_object_or_404(Inventariante, pk=pk)
     user = inventariante.user
 
     if request.method == "POST":
-        # Instancia o formulário com os dados submetidos.
         form = InventarianteUserForm(request.POST, instance=inventariante, user=user)
 
         if form.is_valid():
-            form.save()  # Persiste alterações no banco.
+            form.save()
 
-            if request.htmx:
-                # Retorna resposta vazia e dispara evento HTMX
-                # para fechar modal e atualizar a interface.
-                response = HttpResponse("")
-                trigger_client_event(response, "inventarianteAtualizado")
-                return response
+            # Renderiza mensagem de sucesso dentro do modal
+            html = render_to_string(
+                "app_inventario/partials/inventariante_edit_success.html",
+                {"mensagem": "Usuário inventariante atualizado com sucesso!"},
+                request=request
+            )
 
-            # Fluxo tradicional: redireciona para a lista.
-            return redirect("inventariantes_list")
+            response = HttpResponse(html)
+            # Dispara trigger para atualizar a lista
+            response["HX-Trigger"] = json.dumps({
+                "reload": True
+            })
+            return response
 
-        # Caso inválido, retorna novamente o formulário com erros.
-        return render(
-            request,
-            "app_inventario/partials/inventariante_edit_form.html",
-            {"form": form, "inventariante": inventariante}
+        # Se houver erros, reapresenta o formulário
+        html = render_to_string(
+            "app_inventario/partials/inventariante_form.html",
+            {
+                "form": form,
+                "inventariante": inventariante,
+                "is_edit": True   # <<< ESSENCIAL para diferenciar edição
+            },
+            request=request
         )
+        return HttpResponse(html)
 
-    # Fluxo GET: renderiza o formulário de edição.
+    # GET inicial → formulário preenchido
     form = InventarianteUserForm(instance=inventariante, user=user)
     return render(
         request,
-        "app_inventario/partials/inventariante_edit_form.html",
-        {"form": form, "inventariante": inventariante}
+        "app_inventario/partials/inventariante_form.html",
+        {
+            "form": form,
+            "inventariante": inventariante,
+            "is_edit": True   # <<< ESSENCIAL para diferenciar edição
+        }
     )
+
 
 # ==========================================================
 # CONFIRMAÇÃO DE EXCLUSÃO DE INVENTARIANTE

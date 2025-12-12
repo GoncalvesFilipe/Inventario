@@ -3,7 +3,11 @@
 <div id="modal-inventariante-body" class="modal-body">
 
     <div class="p-3">
+        {% if is_edit %}
+        <p class="text-muted mb-3 text-center">Atualize os dados do inventariante abaixo.</p>
+        {% else %}
         <p class="text-muted mb-3 text-center">Preencha os dados para cadastrar um novo inventariante.</p>
+        {% endif %}
 
         {% if form.non_field_errors %}
         <div class="alert alert-danger py-2 small">
@@ -13,19 +17,16 @@
         </div>
         {% endif %}
 
-        <form method="POST"
-              hx-post="{% url 'inventariante_add' %}"
-              hx-target="#modal-inventariante-body"
-              hx-swap="innerHTML"
-              novalidate>
+        <form method="POST" {% if is_edit %} hx-post="{% url 'inventariante_edit' inventariante.pk %}" {% else %}
+            hx-post="{% url 'inventariante_add' %}" {% endif %} hx-target="#modal-inventariante-body"
+            hx-swap="innerHTML" novalidate>
             {% csrf_token %}
 
             <!-- USERNAME -->
             <div class="form-floating mb-3">
-                <input type="text" name="username" id="id_username"
-                       value="{{ form.username.value|default:'' }}"
-                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-                       placeholder="Usuário" required>
+                <input type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}"
+                    class="form-control {% if form.username.errors %}is-invalid{% endif %}" placeholder="Usuário"
+                    required>
                 <label for="id_username">Usuário</label>
                 {% for error in form.username.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -34,10 +35,9 @@
 
             <!-- NOME -->
             <div class="form-floating mb-3">
-                <input type="text" name="first_name" id="id_first_name"
-                       value="{{ form.first_name.value|default:'' }}"
-                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
-                       placeholder="Nome" required>
+                <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default:'' }}"
+                    class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" placeholder="Nome"
+                    required>
                 <label for="id_first_name">Nome</label>
                 {% for error in form.first_name.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -46,10 +46,9 @@
 
             <!-- SOBRENOME -->
             <div class="form-floating mb-3">
-                <input type="text" name="last_name" id="id_last_name"
-                       value="{{ form.last_name.value|default:'' }}"
-                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
-                       placeholder="Sobrenome" required>
+                <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:'' }}"
+                    class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" placeholder="Sobrenome"
+                    required>
                 <label for="id_last_name">Sobrenome</label>
                 {% for error in form.last_name.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -58,10 +57,8 @@
 
             <!-- EMAIL -->
             <div class="form-floating mb-3">
-                <input type="email" name="email" id="id_email"
-                       value="{{ form.email.value|default:'' }}"
-                       class="form-control {% if form.email.errors %}is-invalid{% endif %}"
-                       placeholder="E-mail" required>
+                <input type="email" name="email" id="id_email" value="{{ form.email.value|default:'' }}"
+                    class="form-control {% if form.email.errors %}is-invalid{% endif %}" placeholder="E-mail" required>
                 <label for="id_email">E-mail</label>
                 {% for error in form.email.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -70,10 +67,9 @@
 
             <!-- MATRÍCULA -->
             <div class="form-floating mb-3">
-                <input type="text" name="matricula" id="id_matricula"
-                       value="{{ form.matricula.value|default:'' }}"
-                       class="form-control {% if form.matricula.errors %}is-invalid{% endif %}"
-                       placeholder="Matrícula" required>
+                <input type="text" name="matricula" id="id_matricula" value="{{ form.matricula.value|default:'' }}"
+                    class="form-control {% if form.matricula.errors %}is-invalid{% endif %}" placeholder="Matrícula"
+                    required>
                 <label for="id_matricula">Matrícula</label>
                 {% for error in form.matricula.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -82,10 +78,9 @@
 
             <!-- FUNÇÃO -->
             <div class="form-floating mb-3">
-                <input type="text" name="funcao" id="id_funcao"
-                       value="{{ form.funcao.value|default:'' }}"
-                       class="form-control {% if form.funcao.errors %}is-invalid{% endif %}"
-                       placeholder="Função / Cargo" required>
+                <input type="text" name="funcao" id="id_funcao" value="{{ form.funcao.value|default:'' }}"
+                    class="form-control {% if form.funcao.errors %}is-invalid{% endif %}" placeholder="Função / Cargo"
+                    required>
                 <label for="id_funcao">Função / Cargo</label>
                 {% for error in form.funcao.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -94,10 +89,9 @@
 
             <!-- TELEFONE -->
             <div class="form-floating mb-3">
-                <input type="text" name="telefone" id="id_telefone"
-                       value="{{ form.telefone.value|default:'' }}"
-                       class="form-control {% if form.telefone.errors %}is-invalid{% endif %}"
-                       placeholder="Telefone" required>
+                <input type="text" name="telefone" id="id_telefone" value="{{ form.telefone.value|default:'' }}"
+                    class="form-control {% if form.telefone.errors %}is-invalid{% endif %}" placeholder="Telefone"
+                    required>
                 <label for="id_telefone">Telefone</label>
                 {% for error in form.telefone.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -106,18 +100,16 @@
 
             <!-- PRESIDENTE -->
             <div class="form-check mb-3">
-                <input type="checkbox" name="presidente" id="id_presidente"
-                       class="form-check-input"
-                       {% if form.presidente.value %}checked{% endif %}>
+                <input type="checkbox" name="presidente" id="id_presidente" class="form-check-input" {% if form.presidente.value %}checked{% endif %}>
                 <label for="id_presidente" class="form-check-label">Presidente da Comissão</label>
             </div>
 
             <!-- ANO ATUAÇÃO -->
             <div class="form-floating mb-4">
                 <input type="number" name="ano_atuacao" id="id_ano_atuacao"
-                       value="{{ form.ano_atuacao.value|default:'' }}"
-                       class="form-control {% if form.ano_atuacao.errors %}is-invalid{% endif %}"
-                       placeholder="Ano de Atuação">
+                    value="{{ form.ano_atuacao.value|default:'' }}"
+                    class="form-control {% if form.ano_atuacao.errors %}is-invalid{% endif %}"
+                    placeholder="Ano de Atuação">
                 <label for="id_ano_atuacao">Ano de Atuação</label>
                 {% for error in form.ano_atuacao.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
@@ -127,37 +119,39 @@
             <!-- SENHA -->
             <div class="form-floating mb-3">
                 <input type="password" name="password1" id="id_password1"
-                       class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
-                       placeholder="Senha"
-                       {% if not form.instance.pk %}required{% endif %}>
+                    class="form-control {% if form.password1.errors %}is-invalid{% endif %}" placeholder="Senha" {% if not form.instance.pk %}required{% endif %}>
                 <label for="id_password1">Senha</label>
                 {% for error in form.password1.errors %}
                 <div class="invalid-feedback">{{ error }}</div>
                 {% endfor %}
+                {% if is_edit %}
+                <small class="text-muted">Deixe em branco para manter a senha atual.</small>
+                {% endif %}
             </div>
 
             <!-- CONFIRMAR SENHA -->
             <div class="form-floating mb-4">
                 <input type="password" name="password2" id="id_password2"
-                       class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
-                       placeholder="Confirmar Senha"
-                       {% if not form.instance.pk %}required{% endif %}>
+                    class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                    placeholder="Confirmar Senha" {% if not form.instance.pk %}required{% endif %}>
                 <label for="id_password2">Confirmar Senha</label>
-                {% for error in form.password2.errors %}
-                <div class="invalid-feedback">{{ error }}</div>
-                {% endfor %}
             </div>
 
             <!-- BOTÕES -->
             <div class="d-flex justify-content-between">
-                <button type="button" data-bs-dismiss="modal"
-                        class="btn btn-outline-success w-50 me-2 rounded-3 py-2">
+                <button type="button" data-bs-dismiss="modal" class="btn btn-outline-success w-50 me-2 rounded-3 py-2">
                     Fechar
                 </button>
 
+                {% if is_edit %}
                 <button type="submit" class="btn btn-primary w-50 rounded-3 py-2">
+                    Salvar Alterações
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-success w-50 rounded-3 py-2">
                     Cadastrar
                 </button>
+                {% endif %}
             </div>
         </form>
     </div>

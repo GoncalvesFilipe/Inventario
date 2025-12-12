@@ -80,11 +80,30 @@ class InventarianteUserForm(forms.ModelForm):
             raise forms.ValidationError("Já existe um inventariante com esta matrícula.")
 
         return matricula
+    
+    def clean_username(self):
+        """
+        Garante que o username seja único entre usuários.
+        - No cadastro novo, não pode repetir.
+        - Na edição, ignora o próprio usuário.
+        """
+        username = self.cleaned_data.get("username")
+
+        qs = User.objects.filter(username=username)
+        if self.user_instance and self.user_instance.pk:
+            qs = qs.exclude(pk=self.user_instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError("Já existe um usuário com este nome de usuário.")
+
+        return username
 
     # ---------------- Salvamento ----------------
     def save(self, commit=True):
         inventariante = super().save(commit=False)
-        user = self.user_instance
+
+        # Se edição, usa o user existente; se novo, cria um User
+        user = self.user_instance or User()
 
         # Atualizar dados do User
         user.username = self.cleaned_data["username"]

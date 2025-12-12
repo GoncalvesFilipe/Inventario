@@ -1,0 +1,19 @@
+<div class="p-3 text-center">
+  <div class="alert alert-success" role="alert">
+    {{ mensagem }}
+  </div>
+</div>
+
+<script>
+  // Fecha o modal após 3 segundos e recarrega a página
+  setTimeout(function() {
+    const modalInventariante = bootstrap.Modal.getInstance(
+      document.getElementById('modalInventariante')
+    );
+    if (modalInventariante) {
+      modalInventariante.hide();
+    }
+    // Atualiza a página para refletir alterações
+    window.location.reload();
+  }, 3000);
+</script>

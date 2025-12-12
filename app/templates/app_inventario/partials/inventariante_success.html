@@ -1,0 +1,16 @@
+<div class="alert alert-success" role="alert">
+  {{ mensagem }}
+</div>
+
+<script>
+  // Fecha o modal após 1,5 segundos e recarrega a página
+  setTimeout(function() {
+    const modalInventariante = bootstrap.Modal.getInstance(
+      document.getElementById('modalInventariante')
+    );
+    if (modalInventariante) {
+      modalInventariante.hide();
+    }
+    window.location.reload();
+  }, 3000);
+</script>
