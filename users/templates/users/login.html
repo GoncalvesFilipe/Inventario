@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<div class="container-fluid d-flex flex-column justify-content-center align-items-center" 
+<div class="container-fluid d-flex flex-column justify-content-center align-items-center"
      style="min-height: calc(100vh - 120px); margin-top: -3rem; margin-bottom: -3rem;">
 
   <div class="bg-white rounded-4 shadow p-5 text-center w-100" style="max-width: 420px">
@@ -14,53 +14,95 @@
     <p class="text-muted mb-4">Insira suas credenciais para continuar</p>
 
     {% if form.non_field_errors %}
-    <div class="alert alert-danger py-2 small text-start">
+      <div class="alert alert-danger py-2 small text-start">
         {% for error in form.non_field_errors %}
-        ⚠️ {{ error }}
+          ⚠️ {{ error }}
         {% endfor %}
-    </div>
+      </div>
     {% endif %}
 
     <form method="POST" action="{% url 'login' %}" hx-boost="false" novalidate>
       {% csrf_token %}
 
+      <!-- USUÁRIO -->
       <div class="form-floating mb-3 text-start">
-        <input type="text" name="username" id="username"
-               value="{{ form.username.value|default_if_none:'' }}"
-               class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-               placeholder="Usuário" required />
+        <input
+          type="text"
+          name="username"
+          id="username"
+          value="{{ form.username.value|default_if_none:'' }}"
+          class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+          placeholder="Usuário"
+          required
+        />
         <label for="username" class="text-success">Usuário</label>
       </div>
 
+      <!-- SENHA -->
       <div class="form-floating mb-4 text-start">
-        <input type="password" name="password" id="password"
-               class="form-control"
-               placeholder="Senha" required />
+        <input
+          type="password"
+          name="password"
+          id="password"
+          class="form-control"
+          placeholder="Senha"
+          required
+        />
         <label for="password" class="text-success">Senha</label>
       </div>
 
+      <!-- BOTÕES -->
       <div class="d-flex justify-content-between">
-        <a href="{% url 'index' %}" class="btn btn-outline-success w-50 me-2 rounded-3 py-2">
+        <a href="{% url 'index' %}"
+           class="btn btn-outline-success w-50 me-2 rounded-3 py-2">
           Voltar
         </a>
 
-        <button type="submit" class="btn btn-primary w-50 rounded-3 py-2">
+        <button type="submit"
+                class="btn btn-primary w-50 rounded-3 py-2">
           Entrar
         </button>
       </div>
 
-      <input type="hidden" name="next" value="{{ next|default:'' }}" />
+      <input type="hidden" name="next" value="{{ next|default:'' }}">
     </form>
 
     <p class="mt-4 mb-0 small text-muted">
       Ainda não possui uma conta?
-      <a href="#" class="text-decoration-none fw-semibold text-primary"
-         data-bs-toggle="modal" data-bs-target="#modalRegistro"
-         hx-get="{% url 'register' %}" hx-target="#modal-body" hx-swap="innerHTML">
+      <a href="#"
+         class="text-decoration-none fw-semibold text-primary"
+         data-bs-toggle="modal"
+         data-bs-target="#modalRegistro"
+         hx-get="{% url 'register' %}"
+         hx-target="#modal-registro-body"
+         hx-swap="innerHTML">
         Cadastre-se aqui
       </a>
     </p>
 
+  </div>
+</div>
+
+<!-- ================= MODAL DE REGISTRO ================= -->
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content rounded-4 shadow">
+
+      <div class="modal-header bg-success text-white rounded-top-4">
+        <h5 class="modal-title">Criar Conta</h5>
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- BODY CARREGADO VIA HTMX -->
+      <div class="modal-body p-0" id="modal-registro-body">
+        <div class="text-center py-5">
+          <div class="spinner-border text-success"></div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 

@@ -1,0 +1,37 @@
+{% block content %}
+<div class="container mt-4">
+
+  <h4 class="fw-bold text-success mb-3">
+    Upload Manual de Planilha de Registros
+  </h4>
+
+  <p class="text-muted">
+    Esta funcionalidade é restrita a usuários com perfil
+    <strong>Presidente</strong> ou <strong>Superusuário</strong>.
+  </p>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label class="form-label">Selecione a planilha (.xlsx)</label>
+      <input
+        type="file"
+        name="planilha"
+        class="form-control"
+        accept=".xlsx"
+        required
+      >
+    </div>
+
+    <button type="submit" class="btn btn-success">
+      Enviar Planilha
+    </button>
+
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary ms-2">
+      Cancelar
+    </a>
+  </form>
+
+</div>
+{% endblock %}

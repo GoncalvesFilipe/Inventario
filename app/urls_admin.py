@@ -34,4 +34,17 @@ urlpatterns = [
     path('inventariante/<int:pk>/excluir/',
          views_admin.inventariante_delete,
          name='inventariante_delete'),
-]
+    
+    # ROTA PARA ADICIONAR PLANILHA
+    path(
+        "planilha/adicionar/",
+        views_admin.adicionar_na_planilha,
+        name="adicionar_na_planilha"
+    ),
+    path(
+    "patrimonios/upload-planilha/",
+    views_admin.upload_planilha,
+    name="upload_planilha"
+),
+]    
+     

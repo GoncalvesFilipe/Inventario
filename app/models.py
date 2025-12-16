@@ -100,3 +100,16 @@ class Patrimonio(models.Model):
     def __str__(self):
         """Retorna representação textual do patrimônio, exibindo número e inventariante associado."""
         return f"{self.patrimonio} ({self.inventariante.user.get_full_name() or self.inventariante.user.username})"
+
+class RegistroPlanilha(models.Model):
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="registros_planilha"
+    )
+    descricao = models.CharField(max_length=255)
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.descricao} - {self.usuario.username}"

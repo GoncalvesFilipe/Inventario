@@ -1,0 +1,24 @@
+<div class="p-4 text-center">
+
+    <div class="mb-3">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+    </div>
+
+    <h5 class="fw-bold text-success mb-2">
+        Cadastro realizado com sucesso!
+    </h5>
+
+    <p class="text-muted mb-0">
+        Você será redirecionado para a tela de login.
+    </p>
+
+    <!-- FECHA MODAL E REDIRECIONA APÓS 3s -->
+    <div hx-trigger="load delay:3s" hx-get="{% url 'login' %}" hx-push-url="true" hx-on="
+            htmx:beforeRequest:
+                bootstrap.Modal.getInstance(
+                    document.getElementById('modalRegistro')
+                ).hide();
+        ">
+    </div>
+
+</div>

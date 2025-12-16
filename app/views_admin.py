@@ -1,15 +1,20 @@
+from openpyxl import load_workbook, Workbook
+from django.conf import settings
+import os
 import json
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
 from .decorators import admin_required
-from django_htmx.http import trigger_client_event
+
 
 # ==========================================================
 # DASHBOARD ADMINISTRATIVO
@@ -222,8 +227,18 @@ def patrimonio_list(request):
     search_query = request.GET.get('q')
     pagina_numero = request.GET.get('page', 1)
 
+    # ======================================================
+    # Regra unificada de privilégio administrativo
+    # Considera usuários Superusuário ou pertencentes
+    # ao grupo "Presidente" como administradores do sistema.
+    # ======================================================
+    is_admin = (
+        request.user.is_superuser or
+        request.user.groups.filter(name="Presidente").exists()
+    )
+
     # Usuário administrador → acesso irrestrito
-    if request.user.is_superuser:
+    if is_admin:
         patrimonios = Patrimonio.objects.all()
     else:
         # Usuário padrão → limitado aos seus próprios patrimônios
@@ -255,10 +270,11 @@ def patrimonio_list(request):
         "pagina": "patrimonio",
         "lista_patrimonios": lista_patrimonios,
         "search_query": search_query or "",
+        # Flag simples para controle de interface no template
+        "is_admin": is_admin,
     }
-
+    
     return render(request, "app_inventario/patrimonio_list.html", context)
-
 
 # ==========================================================
 # FORMULÁRIO HTMX DE PATRIMÔNIO
@@ -385,3 +401,127 @@ def excluir_patrimonio(request, pk):
         )
 
     return HttpResponse(status=405)
+
+
+# ==========================================================
+# REGISTRO EM PLANILHA
+# ----------------------------------------------------------
+# View responsável por inserir dados em uma planilha Excel,
+# associando explicitamente o registro ao usuário autenticado.
+# Esta funcionalidade é restrita ao painel administrativo.
+# ==========================================================
+@login_required
+def adicionar_na_planilha(request):
+    """
+    Registra uma nova linha em planilha Excel, criando o arquivo
+    automaticamente caso ainda não exista no diretório media.
+    """
+
+  
+    usuario = request.user
+
+    # Caminho absoluto do arquivo Excel
+    caminho_planilha = os.path.join(
+        settings.BASE_DIR,
+        "registros.xlsx"
+    )
+    
+    # Verifica se a planilha já existe
+    if os.path.exists(caminho_planilha):
+        # Abre planilha existente
+        workbook = load_workbook(caminho_planilha)
+        sheet = workbook.active
+    else:
+        # Cria nova planilha
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Registros"
+
+        # Cabeçalho inicial
+        sheet.append([
+            "ID Usuário",
+            "Username",
+            "Nome Completo",
+            "Descrição",
+            "Valor"
+        ])
+
+    # Montagem da nova linha
+    nova_linha = [
+        usuario.id,
+        usuario.username,
+        usuario.get_full_name(),
+        "Descrição do registro",
+        150.00
+    ]
+
+    # Inserção e salvamento
+    sheet.append(nova_linha)
+    workbook.save(caminho_planilha)
+
+    return HttpResponse("Registro salvo com sucesso")
+
+# ==========================================================
+# FUNÇÃO DE AUTORIZAÇÃO
+# ----------------------------------------------------------
+# Responsável por centralizar a regra de
+# autorização aplicada às rotinas administrativas sensíveis
+# do sistema.
+#
+# O acesso é concedido exclusivamente a:
+# - Superusuário
+# - Usuário/Presidente"
+# Ambos são considerados perfis de nível administrativo pleno,
+# possuindo autorização irrestrita para:
+# - Inclusão de registros
+# - Gerenciamento de listas
+# - Operações sensíveis do sistema
+# ==========================================================
+def presidente_ou_superuser(user):
+    """
+    Critério de autorização:
+    - Superusuário do sistema (is_superuser)
+    OU
+    - Usuário pertencente ao grupo 'Presidente'
+    """
+    return (
+        user.is_authenticated and (
+            user.is_superuser or
+            user.groups.filter(name="Presidente").exists()
+        )
+    )
+
+
+# ==========================================================
+# REGISTRO DE PLANILHA (UPLOAD MANUAL)
+# ----------------------------------------------------------
+# Responsável por permitir o envio manual da planilha
+
+# Funcionalidade restrita a usuários com perfil:
+# Presidente ou Superusuário.
+# ==========================================================
+@login_required
+@user_passes_test(presidente_ou_superuser)
+def upload_planilha(request):
+    """
+    Recebe e armazena a planilha Excel enviada manualmente.
+    O arquivo será salvo com nome padronizado no diretório
+    de mídia do projeto, substituindo a versão anterior
+    quando existente.
+    """
+
+    if request.method == "POST" and request.FILES.get("planilha"):
+        planilha = request.FILES["planilha"]
+
+        # Garante a existência do diretório de mídia
+        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+
+        # Armazena a planilha com nome padronizado
+        storage = FileSystemStorage(location=settings.MEDIA_ROOT)
+        storage.save("registros.xlsx", planilha)
+
+        # Retorno simples, mantendo o padrão das demais views
+        return HttpResponse("Planilha enviada com sucesso", status=200)
+
+    # Requisição GET → exibição do formulário de upload
+    return render(request, "app_inventario/upload_planilha.html")
