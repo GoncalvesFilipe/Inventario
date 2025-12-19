@@ -19,34 +19,25 @@
       <tbody>
         {% for p in lista_patrimonios %}
         <tr>
-
-          <td class="text-nowrap">{{ p.patrimonio }}</td>
-
-          <td style="max-width: 300px;">
-            {{ p.descricao|truncatechars:60 }}
+          <td>{{ p.patrimonio }}</td>
+          <td>{{ p.descricao|truncatechars:50 }}</td>
+          <td class="d-none d-md-table-cell">{{ p.setor }}</td>
+          <td class="d-none d-lg-table-cell">{{ p.usuario.nome }}</td>
+          <td>
+            {% include "app_inventario/partials/situacao_select.html" with p=p
+            %}
           </td>
-
-          <td class="text-nowrap">{{ p.setor }}</td>
-
-          <td class="text-nowrap">
-            {{ p.usuario.nome }}
-          </td>
-
-          <td class="text-nowrap">
-            {{ p.get_situacao_display }}
-          </td>
-
-          <!-- AÇÕES -->
-          <td class="text-nowrap">
-            <div class="d-inline-flex gap-1">
-
-              <!-- EDITAR -->
-              <button class="btn btn-sm btn-outline-primary"
-                      hx-get="{% url 'patrimonio_edit' p.pk %}"
-                      hx-target="#modal-patrimonio-body"
-                      hx-swap="innerHTML"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modalPatrimonio">
+          <td>
+            <div class="d-flex flex-md-row flex-column gap-2">
+              <!-- Botão Editar -->
+              <button
+                class="btn btn-sm btn-outline-primary w-100"
+                hx-get="{% url 'patrimonio_edit' p.pk %}"
+                hx-target="#modal-patrimonio-body"
+                hx-swap="innerHTML"
+                data-bs-toggle="modal"
+                data-bs-target="#modalPatrimonio"
+              >
                 Editar
               </button>
 

@@ -20,9 +20,7 @@ urlpatterns = [
     path('patrimonio/<int:pk>/editar/', views_admin.patrimonio_edit, name='patrimonio_edit'),  # Edição de patrimônio existente.
     path('patrimonio/<int:pk>/confirmar-exclusao/', views_admin.confirmar_exclusao_patrimonio, name='confirmar_exclusao_patrimonio'),  # Confirmação de exclusão.
     path('patrimonio/<int:pk>/excluir/', views_admin.excluir_patrimonio, name='excluir_patrimonio'),  # Exclusão definitiva.
-    
-    path("patrimonios/tabela/", views_admin.patrimonio_tabela,name="patrimonio_tabela"), # Registrar a rota da tabela
-
+    path('patrimonio/<int:pk>/update_situacao/', views_admin.patrimonio_update_situacao, name='patrimonio_update_situacao'),
 
     # Rotas relacionadas ao gerenciamento de inventariantes.
     path('inventariante/adicionar/', views_admin.inventariante_add, name='inventariante_add'),  # Inclusão de novo inventariante.

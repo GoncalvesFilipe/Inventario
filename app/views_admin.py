@@ -616,135 +616,41 @@ def upload_planilha(request):
     # --------------------------------------------------
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
 
-    # --------------------------------------------------
-    # Armazena a planilha com nome padronizado
-    # Substitui automaticamente versões anteriores
-    # --------------------------------------------------
-    storage = FileSystemStorage(location=settings.MEDIA_ROOT)
-    storage.save("registros.xlsx", planilha)
-
-    # --------------------------------------------------
-    # Carregamento da planilha Excel para leitura
-    # --------------------------------------------------
-    caminho_planilha = os.path.join(settings.MEDIA_ROOT, "registros.xlsx")
-    workbook = load_workbook(caminho_planilha)
-    sheet = workbook.active
-
-    # --------------------------------------------------
-    # Recupera o inventariante vinculado ao usuário logado
-    # --------------------------------------------------
-    inventariante = get_object_or_404(Inventariante, user=request.user)
-
-    # --------------------------------------------------
-    # Iteração sobre as linhas da planilha
-    #
-    # Observações:
-    # - Linha 1: vazia
-    # - Linha 2: cabeçalho
-    # - Dados válidos iniciam na linha 3
-    # --------------------------------------------------
-    for row in sheet.iter_rows(min_row=3, values_only=True):
-
-        # --------------------------------------------------
-        # Validação do número de patrimônio
-        # Garante que o valor seja numérico inteiro
-        # --------------------------------------------------
-        try:
-            patrimonio_numero = int(row[0])
-        except (TypeError, ValueError):
-            continue  # ignora linhas inválidas
-
-        # --------------------------------------------------
-        # Persistência do registro no banco de dados
-        # --------------------------------------------------
-        Patrimonio.objects.create(
-            patrimonio=patrimonio_numero,
-            descricao=row[1],
-            setor=row[2],
-            dependencia=row[3],
-            situacao=row[4],
-            inventariante=inventariante
-        )
-
-    # --------------------------------------------------
-    # Resposta para o HTMX
-    #
-    # - Não retorna conteúdo HTML
-    # - Dispara evento customizado para controle
-    #   do fluxo no frontend
-    # --------------------------------------------------
-    response = HttpResponse(status=204)
-    response["HX-Trigger"] = "planilhaAtualizada"
-    return response
-
-@require_GET
-@login_required
-@user_passes_test(presidente_ou_superuser, login_url=None)
-def upload_planilha_modal(request):
-    """
-    View responsável exclusivamente por fornecer o formulário
-    de upload manual de planilhas para injeção em modal via HTMX.
-
-    Responsabilidades:
-    - Garantir autenticação do usuário
-    - Garantir autorização (Presidente ou Superusuário)
-    - Retornar apenas HTML parcial (fragmento)
-    - NÃO processar dados
-    - NÃO redirecionar
-    - NÃO exibir mensagens globais
-
-    Fluxo esperado:
-    - hx-get → carrega formulário no modal
-    """
-
-    return render(
-        request,
-        "app_inventario/upload_planilha.html",
-        status=200
-    )
-
+    # Requisição GET → exibição do formulário de upload
+    return render(request, "app_inventario/upload_planilha.html")
 
 # ==========================================================
-# LISTAGEM PARCIAL DE PATRIMÔNIOS (HTMX)
-# ----------------------------------------------------------
-# Retorna exclusivamente a tabela e paginação de patrimônios,
-# permitindo atualização dinâmica sem recarregar a página.
+# ATUALIZAÇÃO RÁPIDA DE SITUAÇÃO
+# Permite alterar a 'situação' de um patrimônio diretamente
+# na tabela via select (HTMX).
 # ==========================================================
 @login_required
-def patrimonio_tabela(request):
-    search_query = request.GET.get('q')
-    pagina_numero = request.GET.get('page', 1)
+def patrimonio_update_situacao(request, pk):
+    # Obtém o patrimônio. É importante garantir que o usuário
+    # logado tenha permissão para alterar (regra básica: só o próprio inventariante ou admin)
+    
+    # Tentamos obter o patrimônio, considerando que ele existe
+    patrimonio = get_object_or_404(Patrimonio, pk=pk)
 
-    is_admin = (
-        request.user.is_superuser or
-        request.user.groups.filter(name="Presidente").exists()
-    )
-
-    if is_admin:
-        patrimonios = Patrimonio.objects.all()
-    else:
-        inventariante = get_object_or_404(Inventariante, user=request.user)
-        patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
-
-    if search_query:
-        patrimonios = patrimonios.filter(
-            Q(patrimonio__icontains=search_query) |
-            Q(descricao__icontains=search_query) |
-            Q(setor__icontains=search_query) |
-            Q(dependencia__icontains=search_query)
-        )
-
-    patrimonios = patrimonios.order_by("id")
-
-    paginator = Paginator(patrimonios, 4)
-
-    try:
-        lista_patrimonios = paginator.page(pagina_numero)
-    except (PageNotAnInteger, EmptyPage):
-        lista_patrimonios = paginator.page(1)
-
+    if request.method == 'POST':
+        # O HTMX envia o valor do select no corpo da requisição POST
+        nova_situacao = request.POST.get('situacao')
+        
+        if nova_situacao:
+            patrimonio.situacao = nova_situacao
+            patrimonio.save()
+            
+            # Após salvar, renderizamos o SELECT novamente,
+            # forçando o HTMX a recarregar apenas o elemento modificado.
+            return render(
+                request,
+                "app_inventario/partials/situacao_select.html", 
+                {"p": patrimonio}
+            )
+        
+    # Se a requisição não for POST, apenas retorna o select atual
     return render(
         request,
-        "app_inventario/partials/tabela_e_paginacao.html",
-        {"lista_patrimonios": lista_patrimonios}
+        "app_inventario/partials/situacao_select.html", 
+        {"p": patrimonio}
     )
