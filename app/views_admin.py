@@ -10,10 +10,11 @@ from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
 from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
 from .decorators import admin_required
+
+from django.views.decorators.http import require_GET
 
 
 # ==========================================================
@@ -359,55 +360,90 @@ def patrimonio_edit(request, pk):
         {"form": form, "modo_edicao": True, "patrimonio": patrimonio}
     )
 
-
 # ==========================================================
 # CONFIRMAÇÃO DE EXCLUSÃO DE PATRIMÔNIO
-# Exibe modal prévio, garantindo segurança na operação de
-# remoção de bens associados ao inventariante.
+# Exibe modal de confirmação prévia, garantindo segurança
+# e previsibilidade na operação de remoção definitiva de
+# bens patrimoniais no contexto administrativo.
 # ==========================================================
 @login_required
 def confirmar_exclusao_patrimonio(request, pk):
-    inventariante = get_object_or_404(Inventariante, user=request.user)
-    patrimonio = get_object_or_404(Patrimonio, pk=pk, inventariante=inventariante)
+    # ------------------------------------------------------
+    # Recuperação segura do patrimônio
+    # ------------------------------------------------------
+    patrimonio = get_object_or_404(Patrimonio, pk=pk)
 
+    # ------------------------------------------------------
+    # Renderização do modal de confirmação (HTMX)
+    # ------------------------------------------------------
     return render(
         request,
         "app_inventario/partials/confirmar_exclusao_patrimonio.html",
         {"patrimonio": patrimonio}
     )
 
-
 # ==========================================================
 # EXCLUSÃO DEFINITIVA DE PATRIMÔNIO
-# Realiza a remoção de bens vinculados ao inventariante logado.
-# Opera tanto com POST quanto com DELETE, permitindo integração
-# com HTMX e outros clientes assíncronos.
+# ----------------------------------------------------------
+# Responsável pela remoção permanente de um bem patrimonial
+# do sistema de inventário.
+#
+# Fluxo:
+# 1) Recebe requisição POST via HTMX
+# 2) Exclui o patrimônio solicitado
+# 3) Renderiza novamente a tabela de patrimônios atualizada
+# 4) Dispara evento customizado "patrimonioExcluido"
+#    para feedback visual e recarregamento da página
 # ==========================================================
 @login_required
-@csrf_exempt
 def excluir_patrimonio(request, pk):
-    inventariante = get_object_or_404(Inventariante, user=request.user)
+    # ------------------------------------------------------
+    # Validação do método HTTP
+    # ------------------------------------------------------
+    if request.method != "POST":
+        return HttpResponse(status=405)
 
-    if request.method in ["POST", "DELETE"]:
-        patrimonio = get_object_or_404(Patrimonio, pk=pk, inventariante=inventariante)
-        patrimonio.delete()
+    # ------------------------------------------------------
+    # Recuperação segura do patrimônio
+    # ------------------------------------------------------
+    patrimonio = get_object_or_404(Patrimonio, pk=pk)
 
-        patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
+    # ------------------------------------------------------
+    # Exclusão definitiva do registro
+    # ------------------------------------------------------
+    patrimonio.delete()
 
-        return render(
-            request,
-            "app_inventario/partials/tabela_patrimonios.html",
-            {"patrimonios": patrimonios}
-        )
+    # ------------------------------------------------------
+    # Recarregamento da lista atualizada de patrimônios
+    # ------------------------------------------------------
+    patrimonios = Patrimonio.objects.select_related(
+        "setor",
+        "usuario"
+    ).all()
 
-    return HttpResponse(status=405)
+    # ------------------------------------------------------
+    # Renderização do fragmento HTML atualizado para o HTMX
+    # ------------------------------------------------------
+    html = render_to_string(
+        "app_inventario/partials/tabela_patrimonios.html",
+        {"lista_patrimonios": patrimonios},
+        request=request
+    )
+
+    # ------------------------------------------------------
+    # Retorno da tabela + disparo de evento customizado
+    # ------------------------------------------------------
+    response = HttpResponse(html)
+    response["HX-Trigger"] = "patrimonioExcluido"
+    return response
 
 
 # ==========================================================
 # REGISTRO EM PLANILHA
 # ----------------------------------------------------------
 # View responsável por inserir dados em uma planilha Excel,
-# associando explicitamente o registro ao usuário autenticado.
+# associando explicitamente o registro ao inventariante
+# autenticado e criando também o registro no banco de dados.
 # Esta funcionalidade é restrita ao painel administrativo.
 # ==========================================================
 @login_required
@@ -415,17 +451,19 @@ def adicionar_na_planilha(request):
     """
     Registra uma nova linha em planilha Excel, criando o arquivo
     automaticamente caso ainda não exista no diretório media.
+    Além disso, insere o registro no banco de dados Patrimonio.
     """
 
-  
+    #  Recupera usuário e inventariante vinculado
     usuario = request.user
+    inventariante = get_object_or_404(Inventariante, user=usuario)
 
-    # Caminho absoluto do arquivo Excel
+    # Define caminho absoluto do arquivo Excel
     caminho_planilha = os.path.join(
-        settings.BASE_DIR,
+        settings.MEDIA_ROOT,  # usar MEDIA_ROOT em vez de BASE_DIR
         "registros.xlsx"
     )
-    
+
     # Verifica se a planilha já existe
     if os.path.exists(caminho_planilha):
         # Abre planilha existente
@@ -455,11 +493,36 @@ def adicionar_na_planilha(request):
         150.00
     ]
 
-    # Inserção e salvamento
+    # Inserção e salvamento na planilha
     sheet.append(nova_linha)
     workbook.save(caminho_planilha)
 
+    # Inserção no banco de dados Patrimonio
+    # Gera número de patrimônio automaticamente:
+    # pega o último ID e soma 1
+    ultimo = Patrimonio.objects.order_by("-id").first()
+    if ultimo:
+        patrimonio_numero = ultimo.patrimonio + 1
+    else:
+        patrimonio_numero = 1
+
+    descricao = "Descrição do registro"
+    setor = "Setor padrão"
+    dependencia = "Dependência padrão"
+    situacao = "localizado"
+
+    Patrimonio.objects.create(
+        patrimonio=patrimonio_numero,
+        descricao=descricao,
+        setor=setor,
+        dependencia=dependencia,
+        situacao=situacao,
+        inventariante=inventariante
+    )
+
+    # Retorno da resposta
     return HttpResponse("Registro salvo com sucesso")
+
 
 # ==========================================================
 # FUNÇÃO DE AUTORIZAÇÃO
@@ -491,37 +554,197 @@ def presidente_ou_superuser(user):
         )
     )
 
-
 # ==========================================================
 # REGISTRO DE PLANILHA (UPLOAD MANUAL)
 # ----------------------------------------------------------
-# Responsável por permitir o envio manual da planilha
-
+# View responsável exclusivamente pelo processamento da
+# planilha oficial de registros do sistema.
+#
+# Características desta view:
+# - NÃO renderiza templates HTML
+# - Aceita exclusivamente requisições POST
+# - Opera de forma assíncrona via HTMX
+#
 # Funcionalidade restrita a usuários com perfil:
-# Presidente ou Superusuário.
+# - Presidente
+# - Superusuário
+#
+# Após o processamento:
+# - Os dados são persistidos no banco de dados
+# - Nenhum conteúdo HTML é retornado
+# - Um evento HTMX é disparado para controle do fluxo
+#   no frontend (feedback visual, fechamento do modal
+#   e atualização da listagem)
 # ==========================================================
 @login_required
 @user_passes_test(presidente_ou_superuser)
 def upload_planilha(request):
     """
-    Recebe e armazena a planilha Excel enviada manualmente.
-    O arquivo será salvo com nome padronizado no diretório
-    de mídia do projeto, substituindo a versão anterior
-    quando existente.
+    Processa o upload manual da planilha Excel oficial
+    contendo os registros patrimoniais.
+
+    Responsabilidades desta view:
+    - Validar método HTTP
+    - Validar presença do arquivo
+    - Persistir os dados no banco
+    - Disparar evento HTMX de sucesso
     """
 
-    if request.method == "POST" and request.FILES.get("planilha"):
-        planilha = request.FILES["planilha"]
+    # --------------------------------------------------
+    # Validação do método HTTP
+    # --------------------------------------------------
+    # Apenas requisições POST são permitidas, uma vez que
+    # esta view não possui responsabilidade de exibição
+    # de formulários ou páginas HTML.
+    # --------------------------------------------------
+    if request.method != "POST":
+        return HttpResponse(status=405)
 
-        # Garante a existência do diretório de mídia
-        os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
+    # --------------------------------------------------
+    # Validação da existência do arquivo enviado
+    # --------------------------------------------------
+    if not request.FILES.get("planilha"):
+        return HttpResponse(status=400)
 
-        # Armazena a planilha com nome padronizado
-        storage = FileSystemStorage(location=settings.MEDIA_ROOT)
-        storage.save("registros.xlsx", planilha)
+    # --------------------------------------------------
+    # Recebimento do arquivo enviado pelo formulário
+    # --------------------------------------------------
+    planilha = request.FILES["planilha"]
 
-        # Retorno simples, mantendo o padrão das demais views
-        return HttpResponse("Planilha enviada com sucesso", status=200)
+    # --------------------------------------------------
+    # Garante a existência do diretório de mídia
+    # --------------------------------------------------
+    os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
 
-    # Requisição GET → exibição do formulário de upload
-    return render(request, "app_inventario/upload_planilha.html")
+    # --------------------------------------------------
+    # Armazena a planilha com nome padronizado
+    # Substitui automaticamente versões anteriores
+    # --------------------------------------------------
+    storage = FileSystemStorage(location=settings.MEDIA_ROOT)
+    storage.save("registros.xlsx", planilha)
+
+    # --------------------------------------------------
+    # Carregamento da planilha Excel para leitura
+    # --------------------------------------------------
+    caminho_planilha = os.path.join(settings.MEDIA_ROOT, "registros.xlsx")
+    workbook = load_workbook(caminho_planilha)
+    sheet = workbook.active
+
+    # --------------------------------------------------
+    # Recupera o inventariante vinculado ao usuário logado
+    # --------------------------------------------------
+    inventariante = get_object_or_404(Inventariante, user=request.user)
+
+    # --------------------------------------------------
+    # Iteração sobre as linhas da planilha
+    #
+    # Observações:
+    # - Linha 1: vazia
+    # - Linha 2: cabeçalho
+    # - Dados válidos iniciam na linha 3
+    # --------------------------------------------------
+    for row in sheet.iter_rows(min_row=3, values_only=True):
+
+        # --------------------------------------------------
+        # Validação do número de patrimônio
+        # Garante que o valor seja numérico inteiro
+        # --------------------------------------------------
+        try:
+            patrimonio_numero = int(row[0])
+        except (TypeError, ValueError):
+            continue  # ignora linhas inválidas
+
+        # --------------------------------------------------
+        # Persistência do registro no banco de dados
+        # --------------------------------------------------
+        Patrimonio.objects.create(
+            patrimonio=patrimonio_numero,
+            descricao=row[1],
+            setor=row[2],
+            dependencia=row[3],
+            situacao=row[4],
+            inventariante=inventariante
+        )
+
+    # --------------------------------------------------
+    # Resposta para o HTMX
+    #
+    # - Não retorna conteúdo HTML
+    # - Dispara evento customizado para controle
+    #   do fluxo no frontend
+    # --------------------------------------------------
+    response = HttpResponse(status=204)
+    response["HX-Trigger"] = "planilhaAtualizada"
+    return response
+
+@require_GET
+@login_required
+@user_passes_test(presidente_ou_superuser, login_url=None)
+def upload_planilha_modal(request):
+    """
+    View responsável exclusivamente por fornecer o formulário
+    de upload manual de planilhas para injeção em modal via HTMX.
+
+    Responsabilidades:
+    - Garantir autenticação do usuário
+    - Garantir autorização (Presidente ou Superusuário)
+    - Retornar apenas HTML parcial (fragmento)
+    - NÃO processar dados
+    - NÃO redirecionar
+    - NÃO exibir mensagens globais
+
+    Fluxo esperado:
+    - hx-get → carrega formulário no modal
+    """
+
+    return render(
+        request,
+        "app_inventario/upload_planilha.html",
+        status=200
+    )
+
+
+# ==========================================================
+# LISTAGEM PARCIAL DE PATRIMÔNIOS (HTMX)
+# ----------------------------------------------------------
+# Retorna exclusivamente a tabela e paginação de patrimônios,
+# permitindo atualização dinâmica sem recarregar a página.
+# ==========================================================
+@login_required
+def patrimonio_tabela(request):
+    search_query = request.GET.get('q')
+    pagina_numero = request.GET.get('page', 1)
+
+    is_admin = (
+        request.user.is_superuser or
+        request.user.groups.filter(name="Presidente").exists()
+    )
+
+    if is_admin:
+        patrimonios = Patrimonio.objects.all()
+    else:
+        inventariante = get_object_or_404(Inventariante, user=request.user)
+        patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
+
+    if search_query:
+        patrimonios = patrimonios.filter(
+            Q(patrimonio__icontains=search_query) |
+            Q(descricao__icontains=search_query) |
+            Q(setor__icontains=search_query) |
+            Q(dependencia__icontains=search_query)
+        )
+
+    patrimonios = patrimonios.order_by("id")
+
+    paginator = Paginator(patrimonios, 4)
+
+    try:
+        lista_patrimonios = paginator.page(pagina_numero)
+    except (PageNotAnInteger, EmptyPage):
+        lista_patrimonios = paginator.page(1)
+
+    return render(
+        request,
+        "app_inventario/partials/tabela_e_paginacao.html",
+        {"lista_patrimonios": lista_patrimonios}
+    )

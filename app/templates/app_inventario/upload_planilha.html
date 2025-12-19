@@ -1,37 +1,22 @@
-{% block content %}
-<div class="container mt-4">
+<form method="post" 
+      enctype="multipart/form-data" 
+      hx-post="{% url 'upload_planilha' %}"
+      hx-swap="none"
+>
+  {% csrf_token %}
 
-  <h4 class="fw-bold text-success mb-3">
-    Upload Manual de Planilha de Registros
-  </h4>
+  <div class="mb-3">
+    <label class="form-label">Selecione a planilha (.xlsx)</label>
+    <input type="file" name="planilha" class="form-control" accept=".xlsx" required>
+  </div>
 
-  <p class="text-muted">
-    Esta funcionalidade é restrita a usuários com perfil
-    <strong>Presidente</strong> ou <strong>Superusuário</strong>.
-  </p>
-
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-
-    <div class="mb-3">
-      <label class="form-label">Selecione a planilha (.xlsx)</label>
-      <input
-        type="file"
-        name="planilha"
-        class="form-control"
-        accept=".xlsx"
-        required
-      >
-    </div>
-
+  <div class="d-flex justify-content-end gap-2">
     <button type="submit" class="btn btn-success">
       Enviar Planilha
     </button>
 
-    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary ms-2">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
       Cancelar
-    </a>
-  </form>
-
-</div>
-{% endblock %}
+    </button>
+  </div>
+</form>

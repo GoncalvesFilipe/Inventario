@@ -109,3 +109,46 @@ function fecharModalInventariante() {
     modal.hide();
   }
 }
+
+/* ==========================================================
+   EVENTO HTMX – PLANILHA ATUALIZADA
+   ----------------------------------------------------------
+   Disparado após o processamento bem-sucedido do upload.
+   Responsável por:
+   - Exibir mensagem temporária de sucesso (toast)
+   - Fechar explicitamente o modal de upload
+   - Recarregar a página após feedback visual
+   ========================================================== */
+document.addEventListener("planilhaAtualizada", function () {
+
+    // ---------------------------------------------
+    // Exibe o toast de confirmação
+    // ---------------------------------------------
+    const toastEl = document.getElementById("toastPlanilha");
+    if (toastEl) {
+        const toast = bootstrap.Toast.getOrCreateInstance(toastEl, {
+            delay: 3000
+        });
+        toast.show();
+    }
+
+    // ---------------------------------------------
+    // Fecha o modal exclusivo de upload de planilha
+    // ---------------------------------------------
+    const modalEl = document.getElementById("modalUploadPlanilha");
+    if (modalEl) {
+        const modal =
+            bootstrap.Modal.getInstance(modalEl) ||
+            bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        modal.hide();
+    }
+
+    // ---------------------------------------------
+    // Recarrega a página após o feedback visual
+    // ---------------------------------------------
+    setTimeout(() => {
+        window.location.reload();
+    }, 3000);
+
+});

@@ -1,34 +1,20 @@
-<div class="modal-content rounded-4 shadow">
-  <div class="modal-header bg-danger text-white rounded-top-4">
-    <h5 class="modal-title">Confirmar exclusão</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-  </div>
+<div class="modal-header bg-danger text-white rounded-top-4">
+  <h5 class="modal-title">Confirmar Exclusão</h5>
+  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
 
-  <div class="modal-body">
+<div class="modal-body">
+  <p>
+    Tem certeza de que deseja excluir o patrimônio:
+    <strong>{{ patrimonio.descricao }}</strong>?
+  </p>
+</div>
 
-    <p class="mb-4">
-      Tem certeza de que deseja excluir o patrimônio:
-      <strong>{{ patrimonio.descricao }}</strong>?
-    </p>
-
-    <div class="d-flex gap-2 flex-column flex-sm-row">
-
-      <!-- CONFIRMAR EXCLUSÃO -->
-      <button class="btn btn-danger w-100"
-              hx-post="{% url 'excluir_patrimonio' patrimonio.pk %}"
-              hx-target="#conteudo-admin"
-              hx-swap="innerHTML"
-              data-bs-dismiss="modal">
-        Confirmar
-      </button>
-
-      <!-- CANCELAR -->
-      <button class="btn btn-secondary w-100"
-              data-bs-dismiss="modal">
-        Cancelar
-      </button>
-
-    </div>
-
-  </div>
+<div class="modal-footer">
+  <form hx-post="{% url 'excluir_patrimonio' patrimonio.pk %}" hx-target="#tabela-patrimonios" hx-swap="outerHTML"
+    hx-trigger="submit">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+  </form>
 </div>

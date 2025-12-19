@@ -28,8 +28,8 @@
 
     <input type="text" class="form-control" name="q"
       placeholder="Buscar Patrimônio (Nº, Descrição, Setor, Dependência...)" value="{{ search_query }}"
-      hx-get="{% url 'patrimonio_list' %}" hx-trigger="keyup changed delay:750ms, search" hx-target="#conteudo-admin"
-      hx-swap="innerHTML" hx-indicator="#loading-indicator">
+      hx-get="{% url 'patrimonio_list' %}" hx-trigger="keyup changed delay:750ms, search"
+      hx-target="#conteudo-patrimonios" hx-swap="innerHTML" hx-indicator="#loading-indicator">
 
     <button class="btn btn-outline-secondary" type="button">
       <span id="loading-indicator" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
@@ -51,18 +51,17 @@
     {# Botão de registro/importação via planilha #}
     {# Acesso restrito a Presidente ou Superuser #}
     {% if is_admin %}
-    <button class="btn btn-outline-primary btn-sm" hx-get="{% url 'upload_planilha' %}"
-      hx-target="#modal-patrimonio-body" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
+    <button class="btn btn-outline-primary btn-sm" hx-get="{% url 'upload_planilha_modal' %}"
+      hx-target="#modal-upload-planilha-body" hx-swap="innerHTML" data-bs-toggle="modal"
+      data-bs-target="#modalUploadPlanilha">
       Registrar em Planilha
     </button>
     {% endif %}
-
   </div>
-
 </div>
 
 {# LISTAGEM DE PATRIMÔNIOS + PAGINAÇÃO #}
 {# Conteúdo parcial para reutilização e HTMX #}
-<div id="conteudo-patrimonios">
+<div id="conteudo-patrimonios" style="overflow-x: auto; width: 100%;">
   {% include "app_inventario/partials/tabela_e_paginacao.html" %}
 </div>
