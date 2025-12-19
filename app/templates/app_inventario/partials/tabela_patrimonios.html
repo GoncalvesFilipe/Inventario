@@ -19,7 +19,10 @@
           <td>{{ p.descricao|truncatechars:50 }}</td>
           <td class="d-none d-md-table-cell">{{ p.setor }}</td>
           <td class="d-none d-lg-table-cell">{{ p.usuario.nome }}</td>
-          <td>{{ p.get_situacao_display }}</td>
+          <td>
+            {% include "app_inventario/partials/situacao_select.html" with p=p
+            %}
+          </td>
           <td>
             <div class="d-flex flex-md-row flex-column gap-2">
               <!-- Botão Editar -->

@@ -525,3 +525,39 @@ def upload_planilha(request):
 
     # Requisição GET → exibição do formulário de upload
     return render(request, "app_inventario/upload_planilha.html")
+
+# ==========================================================
+# ATUALIZAÇÃO RÁPIDA DE SITUAÇÃO
+# Permite alterar a 'situação' de um patrimônio diretamente
+# na tabela via select (HTMX).
+# ==========================================================
+@login_required
+def patrimonio_update_situacao(request, pk):
+    # Obtém o patrimônio. É importante garantir que o usuário
+    # logado tenha permissão para alterar (regra básica: só o próprio inventariante ou admin)
+    
+    # Tentamos obter o patrimônio, considerando que ele existe
+    patrimonio = get_object_or_404(Patrimonio, pk=pk)
+
+    if request.method == 'POST':
+        # O HTMX envia o valor do select no corpo da requisição POST
+        nova_situacao = request.POST.get('situacao')
+        
+        if nova_situacao:
+            patrimonio.situacao = nova_situacao
+            patrimonio.save()
+            
+            # Após salvar, renderizamos o SELECT novamente,
+            # forçando o HTMX a recarregar apenas o elemento modificado.
+            return render(
+                request,
+                "app_inventario/partials/situacao_select.html", 
+                {"p": patrimonio}
+            )
+        
+    # Se a requisição não for POST, apenas retorna o select atual
+    return render(
+        request,
+        "app_inventario/partials/situacao_select.html", 
+        {"p": patrimonio}
+    )

@@ -1,0 +1,16 @@
+<div id="situacao-wrapper-{{ p.pk }}">
+    <select
+      name="situacao"
+      class="form-select form-select-sm"
+      hx-post="{% url 'patrimonio_update_situacao' p.pk %}"
+      hx-target="#situacao-wrapper-{{ p.pk }}"
+      hx-swap="outerHTML"
+      hx-trigger="change"
+    >
+      {% for value, label in p.STATUS_CHOICES %}
+      <option value="{{ value }}" {% if p.situacao == value %}selected{% endif %}>
+        {{ label }}
+      </option>
+      {% endfor %}
+    </select>
+</div>

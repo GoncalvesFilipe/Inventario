@@ -23,7 +23,9 @@
 
         <td>{{ p.inventariante.user.get_full_name | default:p.inventariante.user.username }}</td> 
         
-        <td>{{ p.get_situacao_display }}</td>
+        <td>
+          {% include "app_inventario/partials/situacao_select.html" with p=p %}
+        </td>
 
         <td>
           <div class="d-flex flex-md-row flex-column gap-2">
