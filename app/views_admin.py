@@ -654,3 +654,11 @@ def patrimonio_update_situacao(request, pk):
         "app_inventario/partials/situacao_select.html", 
         {"p": patrimonio}
     )
+
+@login_required
+@user_passes_test(presidente_ou_superuser)
+def upload_planilha_modal(request):
+    """
+    Retorna o template que contém o formulário do modal.
+    """
+    return render(request, "app_inventario/upload_planilha.html")

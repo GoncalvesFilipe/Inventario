@@ -35,5 +35,6 @@ urlpatterns = [
     # ROTA PARA ADICIONAR PLANILHA
     path("planilha/adicionar/", views_admin.adicionar_na_planilha,name="adicionar_na_planilha"),
     path("patrimonios/upload-planilha/", views_admin.upload_planilha,name="upload_planilha"),
+    path("planilha/modal/", views_admin.upload_planilha_modal,name="upload_planilha_modal"),
 ]    
      
