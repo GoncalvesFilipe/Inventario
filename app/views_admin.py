@@ -258,7 +258,7 @@ def patrimonio_list(request):
     patrimonios = patrimonios.order_by('id')
 
     # Paginação configurada com 4 itens por página
-    paginator = Paginator(patrimonios, 4)
+    paginator = Paginator(patrimonios, 7)
 
     try:
         lista_patrimonios = paginator.page(pagina_numero)
