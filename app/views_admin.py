@@ -557,13 +557,8 @@ def presidente_ou_superuser(user):
 # ==========================================================
 # REGISTRO DE PLANILHA (UPLOAD MANUAL)
 # ----------------------------------------------------------
-# View responsável exclusivamente pelo processamento da
-# planilha oficial de registros do sistema.
-#
-# Características desta view:
-# - NÃO renderiza templates HTML
-# - Aceita exclusivamente requisições POST
-# - Opera de forma assíncrona via HTMX
+# View responsável exclusivamente pelo processamento 
+# da planilha oficial de registros do sistema.
 #
 # Funcionalidade restrita a usuários com perfil:
 # - Presidente
@@ -579,45 +574,58 @@ def presidente_ou_superuser(user):
 @login_required
 @user_passes_test(presidente_ou_superuser)
 def upload_planilha(request):
-    """
-    Processa o upload manual da planilha Excel oficial
-    contendo os registros patrimoniais.
-
-    Responsabilidades desta view:
-    - Validar método HTTP
-    - Validar presença do arquivo
-    - Persistir os dados no banco
-    - Disparar evento HTMX de sucesso
-    """
-
-    # --------------------------------------------------
-    # Validação do método HTTP
-    # --------------------------------------------------
-    # Apenas requisições POST são permitidas, uma vez que
-    # esta view não possui responsabilidade de exibição
-    # de formulários ou páginas HTML.
-    # --------------------------------------------------
     if request.method != "POST":
         return HttpResponse(status=405)
 
-    # --------------------------------------------------
-    # Validação da existência do arquivo enviado
-    # --------------------------------------------------
     if not request.FILES.get("planilha"):
         return HttpResponse(status=400)
 
-    # --------------------------------------------------
-    # Recebimento do arquivo enviado pelo formulário
-    # --------------------------------------------------
     planilha = request.FILES["planilha"]
 
-    # --------------------------------------------------
-    # Garante a existência do diretório de mídia
-    # --------------------------------------------------
+    # Garante diretório de mídia
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
 
-    # Requisição GET → exibição do formulário de upload
-    return render(request, "app_inventario/upload_planilha.html")
+    caminho_planilha = os.path.join(settings.MEDIA_ROOT, "registros.xlsx")
+
+    # Salva arquivo enviado
+    fs = FileSystemStorage(location=settings.MEDIA_ROOT)
+    fs.save("registros.xlsx", planilha)
+
+    # Abre planilha com openpyxl
+    workbook = load_workbook(caminho_planilha)
+    sheet = workbook.active
+
+    # Recupera inventariante vinculado ao usuário logado
+    inventariante = get_object_or_404(Inventariante, user=request.user)
+
+    # Itera linhas a partir da segunda (ignora cabeçalho)
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        if not any(row):  # ignora linhas totalmente vazias
+            continue
+
+        patrimonio_numero, descricao, setor, dependencia, situacao, *rest = row
+
+        # Valida número do patrimônio
+        try:
+            patrimonio_numero = int(patrimonio_numero)
+        except (TypeError, ValueError):
+            continue
+
+        # Cria registro no banco vinculado ao inventariante
+        Patrimonio.objects.create(
+            patrimonio=patrimonio_numero,
+            descricao=descricao or "",
+            setor=setor or "",
+            dependencia=dependencia or "",
+            situacao=situacao or "localizado",
+            inventariante=inventariante
+        )
+
+    # Dispara evento HTMX para frontend
+    response = HttpResponse("")
+    response["HX-Trigger"] = "planilhaAtualizada"
+    return response
+
 
 # ==========================================================
 # ATUALIZAÇÃO RÁPIDA DE SITUAÇÃO
