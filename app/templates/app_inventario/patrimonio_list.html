@@ -1,20 +1,18 @@
 <div class="mb-3">
 
   {# TÍTULO DA SEÇÃO #}
-  <h5 class="fw-bold text-success">Lista de Patrimônios</h5>
-
+  <h5 class="fw-bold text-success text-center">Lista de Patrimônios</h5>
 
   {# IDENTIFICAÇÃO DO PERFIL DO USUÁRIO LOGADO #}
-  {# Administrador (Superuser ou Presidente) ou Inventariante #}
   {% if is_admin %}
-  <p class="text-secondary">
+  <p class="text-secondary text-center">
     Responsável (acesso total):
     <strong>
       {{ request.user.get_full_name|default:request.user.username }}
     </strong>
   </p>
   {% else %}
-  <p class="text-secondary">
+  <p class="text-secondary text-center">
     Inventariante responsável:
     <strong>
       {{ request.user.inventariante|default:"Inventariante não vinculado" }}
@@ -23,9 +21,7 @@
   {% endif %}
 
   {# CAMPO DE BUSCA COM HTMX #}
-  {# Pesquisa dinâmica sem recarregar a página #}
   <div class="input-group mb-3 mt-3">
-
     <input type="text" class="form-control" name="q"
       placeholder="Buscar Patrimônio (Nº, Descrição, Setor, Dependência...)" value="{{ search_query }}"
       hx-get="{% url 'patrimonio_list' %}" hx-trigger="keyup changed delay:750ms, search"
@@ -34,34 +30,37 @@
     <button class="btn btn-outline-secondary" type="button">
       <span id="loading-indicator" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
         style="display: none;"></span>
-      <i class="bi bi-search"></i>
+      Buscar
     </button>
-
   </div>
 
-  {# BOTÕES DE AÇÃO #}
-  <div class="d-flex gap-2 mt-2">
-
-    {# Botão padrão de cadastro manual de patrimônio #}
-    <button class="btn btn-success btn-sm" hx-get="{% url 'patrimonio_add' %}" hx-target="#modal-patrimonio-body"
-      hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
+  {# BOTÕES DE AÇÃO PRINCIPAIS #}
+  <div class="d-flex justify-content-center gap-2 mt-2">
+    {# Botões exclusivos para administradores #}
+    {% if is_admin %}
+    {# Botão de cadastro manual de patrimônio (verde outline) #}
+    <button class="btn btn-sm btn-outline-success w-100" hx-get="{% url 'patrimonio_add' %}"
+      hx-target="#modal-patrimonio-body" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
       Adicionar Patrimônio
     </button>
 
-    {# Botão de registro/importação via planilha #}
-    {# Acesso restrito a Presidente ou Superuser #}
-    {% if is_admin %}
-    <button class="btn btn-outline-primary btn-sm" hx-get="{% url 'upload_planilha_modal' %}"
+    <button class="btn btn-sm btn-outline-primary w-100" hx-get="{% url 'upload_planilha_modal' %}"
       hx-target="#modal-upload-planilha-body" hx-swap="innerHTML" data-bs-toggle="modal"
       data-bs-target="#modalUploadPlanilha">
-      Registrar em Planilha
+      Inserir Planilha (.xlsx)
     </button>
+
+    <button class="btn btn-sm btn-outline-danger w-100" hx-get="{% url 'excluir_planilha_confirm' %}"
+      hx-target="#modal-confirmacao-planilha-body" hx-swap="innerHTML" data-bs-toggle="modal"
+      data-bs-target="#modalConfirmacaoPlanilha">
+      Excluir Planilha
+    </button>
+
     {% endif %}
   </div>
 </div>
 
 {# LISTAGEM DE PATRIMÔNIOS + PAGINAÇÃO #}
-{# Conteúdo parcial para reutilização e HTMX #}
 <div id="conteudo-patrimonios" style="overflow-x: auto; width: 100%;">
   {% include "app_inventario/partials/tabela_e_paginacao.html" %}
 </div>

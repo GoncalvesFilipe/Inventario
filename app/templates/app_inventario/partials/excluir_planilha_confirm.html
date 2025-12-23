@@ -1,0 +1,14 @@
+<p>Tem certeza que deseja excluir a planilha e todos os registros vinculados?</p>
+
+<div class="d-flex gap-2 flex-column flex-sm-row">
+  <button class="btn btn-danger w-100"
+          hx-post="{% url 'excluir_planilha' %}"
+          hx-target="#conteudo-patrimonios"
+          hx-swap="innerHTML">
+    Confirmar Exclusão
+  </button>
+
+  <button class="btn btn-secondary w-100" data-bs-dismiss="modal">
+    Cancelar
+  </button>
+</div>

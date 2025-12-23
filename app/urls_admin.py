@@ -36,5 +36,9 @@ urlpatterns = [
     path("planilha/adicionar/", views_admin.adicionar_na_planilha,name="adicionar_na_planilha"),
     path("patrimonios/upload-planilha/", views_admin.upload_planilha,name="upload_planilha"),
     path("planilha/modal/", views_admin.upload_planilha_modal,name="upload_planilha_modal"),
+    
+    # ROTAS DE EXCLUSÃO DE PLANILHA
+    path("excluir-planilha-confirm/", views_admin.excluir_planilha_confirm, name="excluir_planilha_confirm"), 
+    path("excluir-planilha/", views_admin.excluir_planilha, name="excluir_planilha"),
 ]    
      

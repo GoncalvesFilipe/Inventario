@@ -1,11 +1,11 @@
 <div id="inventariante-list" hx-get="{% url 'inventariantes_list' %}" hx-trigger="reload from:body"
   hx-target="#inventariante-list" hx-swap="innerHTML">
 
-  <h5 class="fw-bold text-success mb-3">Inventariantes Cadastrados</h5>
+  <h5 class="fw-bold text-success text-center">Inventariantes Cadastrados</h5>
 
   <div class="mb-3">
     {% if user.is_superuser or user.inventariante.presidente %}
-    <button class="btn btn-success" hx-get="{% url 'inventariante_add' %}" hx-target="#modal-inventariante-body"
+    <button class="btn btn-sm btn-outline-success w-100" hx-get="{% url 'inventariante_add' %}" hx-target="#modal-inventariante-body"
       hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalInventariante">
       Adicionar Inventariante
     </button>

@@ -14,7 +14,7 @@ from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
 from .decorators import admin_required
 
-from django.views.decorators.http import require_GET
+from .decorators import presidente_ou_superuser
 
 
 # ==========================================================
@@ -439,6 +439,70 @@ def excluir_patrimonio(request, pk):
 
 
 # ==========================================================
+# EXCLUSÃO DE PLANILHA DE PATRIMÔNIO
+# ----------------------------------------------------------
+# Responsável por remover o arquivo físico da planilha Excel
+# e também excluir todos os registros de patrimônio do banco.
+#
+# Fluxo:
+# 1) Recebe requisição POST via HTMX
+# 2) Remove o arquivo "registros.xlsx" do diretório MEDIA_ROOT
+# 3) Exclui todos os registros da tabela Patrimonio
+# 4) Dispara evento HTMX "planilhaExcluida" para feedback
+#    visual e recarregamento da página
+# ==========================================================
+@login_required
+@user_passes_test(presidente_ou_superuser)
+def excluir_planilha(request):
+    # ------------------------------------------------------
+    # Validação do método HTTP
+    # ------------------------------------------------------
+    if request.method != "POST":
+        return HttpResponse(status=405)
+
+    # ------------------------------------------------------
+    # Caminho absoluto da planilha
+    # ------------------------------------------------------
+    caminho_planilha = os.path.join(settings.MEDIA_ROOT, "registros.xlsx")
+
+    # ------------------------------------------------------
+    # Remoção do arquivo físico, se existir
+    # ------------------------------------------------------
+    if os.path.exists(caminho_planilha):
+        os.remove(caminho_planilha)
+
+    # ------------------------------------------------------
+    # Exclusão de todos os registros de patrimônio no banco
+    # ------------------------------------------------------
+    Patrimonio.objects.all().delete()
+
+    # ------------------------------------------------------
+    # Retorno da resposta + disparo de evento HTMX
+    # ------------------------------------------------------
+    response = HttpResponse("")
+    response["HX-Trigger"] = json.dumps({
+        "planilhaExcluida": True
+    })
+    return response
+
+
+# ==========================================================
+# CONFIRMAÇÃO DE EXCLUSÃO DE PLANILHA
+# ----------------------------------------------------------
+# Exibe modal solicitando confirmação prévia antes de proceder
+# à remoção definitiva da planilha e dos registros vinculados.
+# ==========================================================
+@login_required
+@user_passes_test(presidente_ou_superuser)
+def excluir_planilha_confirm(request):
+    return render(
+        request,
+        "app_inventario/partials/excluir_planilha_confirm.html"
+    )
+
+
+
+# ==========================================================
 # REGISTRO EM PLANILHA
 # ----------------------------------------------------------
 # View responsável por inserir dados em uma planilha Excel,
@@ -670,3 +734,4 @@ def upload_planilha_modal(request):
     Retorna o template que contém o formulário do modal.
     """
     return render(request, "app_inventario/upload_planilha.html")
+

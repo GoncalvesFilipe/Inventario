@@ -184,3 +184,41 @@ document.body.addEventListener("patrimonioExcluido", function () {
         window.location.reload();
     }, 3000);
 });
+
+/* ==========================================================
+   EVENTO CUSTOMIZADO – planilhaExcluida
+   ----------------------------------------------------------
+   Fluxo após exclusão de planilha:
+   1) Exibe mensagem de sucesso dentro do modal de confirmação
+   2) Aguarda 3 segundos
+   3) Fecha o modal corretamente
+   4) Recarrega a página inteira
+   ========================================================== */
+document.body.addEventListener("planilhaExcluida", function () {
+
+    const modalAberto = document.querySelector(".modal.show");
+    if (!modalAberto) return;
+
+    // --------------------------------------------------
+    // Injeção de feedback visual dentro do modal
+    // --------------------------------------------------
+    const modalBody = modalAberto.querySelector(".modal-body");
+    if (modalBody) {
+        modalBody.innerHTML = `
+          <div class="alert alert-success text-center fw-bold">
+            Planilha excluída com sucesso!
+          </div>
+        `;
+    }
+
+    // --------------------------------------------------
+    // Encerramento controlado do fluxo
+    // --------------------------------------------------
+    setTimeout(() => {
+        const modalInstance = bootstrap.Modal.getInstance(modalAberto);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+        window.location.reload();
+    }, 3000);
+});

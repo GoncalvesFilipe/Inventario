@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseForbidden, HttpResponse
+from django.contrib.auth.decorators import user_passes_test
 
 def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -31,3 +32,5 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+def presidente_ou_superuser(user): return ( user.is_authenticated and ( user.is_superuser or user.groups.filter(name="Presidente").exists() ) )
