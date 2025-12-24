@@ -37,7 +37,7 @@
   {# BOTÕES DE AÇÃO PRINCIPAIS #}
   <div class="d-flex justify-content-center gap-2 mt-2">
     {# Botões exclusivos para administradores #}
-    {% if is_admin %}
+    {% if is_admin or user.inventariante.presidente %}
     {# Botão para cadastro manual de patrimônio #}
     <button class="btn btn-sm btn-outline-success w-100" hx-get="{% url 'patrimonio_add' %}"
       hx-target="#modal-patrimonio-body" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
