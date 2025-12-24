@@ -228,25 +228,17 @@ def patrimonio_list(request):
     search_query = request.GET.get('q')
     pagina_numero = request.GET.get('page', 1)
 
-    # ======================================================
-    # Regra unificada de privilégio administrativo
-    # Considera usuários Superusuário ou pertencentes
-    # ao grupo "Presidente" como administradores do sistema.
-    # ======================================================
     is_admin = (
         request.user.is_superuser or
         request.user.groups.filter(name="Presidente").exists()
     )
 
-    # Usuário administrador → acesso irrestrito
     if is_admin:
         patrimonios = Patrimonio.objects.all()
     else:
-        # Usuário padrão → limitado aos seus próprios patrimônios
         inventariante = get_object_or_404(Inventariante, user=request.user)
         patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
 
-    # Mecanismo de busca textual
     if search_query:
         patrimonios = patrimonios.filter(
             Q(patrimonio__icontains=search_query) |
@@ -262,19 +254,21 @@ def patrimonio_list(request):
 
     try:
         lista_patrimonios = paginator.page(pagina_numero)
-    except PageNotAnInteger:
+    except (PageNotAnInteger, EmptyPage):
         lista_patrimonios = paginator.page(1)
-    except EmptyPage:
-        lista_patrimonios = paginator.page(paginator.num_pages)
 
     context = {
         "pagina": "patrimonio",
         "lista_patrimonios": lista_patrimonios,
         "search_query": search_query or "",
-        # Flag simples para controle de interface no template
         "is_admin": is_admin,
     }
     
+    # Se o alvo for 'conteudo-patrimonios', envia só a tabela (Busca/Paginação)
+    if request.headers.get('HX-Target') == 'conteudo-patrimonios':
+        return render(request, "app_inventario/partials/tabela_e_paginacao.html", context)
+    
+    # Caso contrário (Menu Lateral/F5), envia a lista completa com botões
     return render(request, "app_inventario/patrimonio_list.html", context)
 
 # ==========================================================
