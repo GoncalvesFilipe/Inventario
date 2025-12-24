@@ -38,18 +38,20 @@
   <div class="d-flex justify-content-center gap-2 mt-2">
     {# Botões exclusivos para administradores #}
     {% if is_admin %}
-    {# Botão de cadastro manual de patrimônio (verde outline) #}
+    {# Botão para cadastro manual de patrimônio #}
     <button class="btn btn-sm btn-outline-success w-100" hx-get="{% url 'patrimonio_add' %}"
       hx-target="#modal-patrimonio-body" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
       Adicionar Patrimônio
     </button>
 
+    {# Botão Inserir Planilha (.xlsx) #}
     <button class="btn btn-sm btn-outline-primary w-100" hx-get="{% url 'upload_planilha_modal' %}"
       hx-target="#modal-upload-planilha-body" hx-swap="innerHTML" data-bs-toggle="modal"
       data-bs-target="#modalUploadPlanilha">
       Inserir Planilha (.xlsx)
     </button>
 
+    {# Botão Excluir Planilha (.xlsx) #}
     <button class="btn btn-sm btn-outline-danger w-100" hx-get="{% url 'excluir_planilha_confirm' %}"
       hx-target="#modal-confirmacao-planilha-body" hx-swap="innerHTML" data-bs-toggle="modal"
       data-bs-target="#modalConfirmacaoPlanilha">

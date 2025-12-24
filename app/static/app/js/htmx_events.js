@@ -144,46 +144,41 @@ document.body.addEventListener('hidden.bs.modal', function () {
    EVENTO CUSTOMIZADO – patrimonioExcluido
    ----------------------------------------------------------
    Fluxo após exclusão de patrimônio:
-   1) Exibe mensagem temporária de sucesso (toast)
-   2) Fecha automaticamente o modal de confirmação
-   3) Recarrega a página após 3 segundos
+   1) Exibe mensagem de sucesso dentro do modal de confirmação
+   2) Aguarda 3 segundos
+   3) Fecha o modal corretamente
+   4) Atualiza apenas a tabela (já feito pelo HTMX swap)
    ========================================================== */
 document.body.addEventListener("patrimonioExcluido", function () {
 
-    // ---------------------------------------------
-    // Exibe toast de confirmação
-    // ---------------------------------------------
-    const toastEl = document.createElement("div");
-    toastEl.className = "toast align-items-center text-bg-success border-0 show";
-    toastEl.style = "position: fixed; top: 1rem; right: 1rem; z-index: 2000;";
-    toastEl.innerHTML = `
-      <div class="d-flex">
-        <div class="toast-body fw-bold">
-          Patrimônio excluído com sucesso!
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                data-bs-dismiss="toast" aria-label="Fechar"></button>
-      </div>
-    `;
-    document.body.appendChild(toastEl);
+    const modalAberto = document.querySelector(".modal.show");
+    if (!modalAberto) return;
 
-    // ---------------------------------------------
-    // Fecha o modal de confirmação
-    // ---------------------------------------------
-    const modalEl = document.getElementById("modalConfirm");
-    if (modalEl) {
-        const modal = bootstrap.Modal.getInstance(modalEl) 
-                   || bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.hide();
+    // --------------------------------------------------
+    // Injeção de feedback visual dentro do modal
+    // --------------------------------------------------
+    const modalBody = modalAberto.querySelector(".modal-body");
+    if (modalBody) {
+        modalBody.innerHTML = `
+          <div class="alert alert-success text-center fw-bold">
+            Patrimônio excluído com sucesso!
+          </div>
+        `;
     }
 
-    // ---------------------------------------------
-    // Recarrega a página após feedback visual
-    // ---------------------------------------------
+    // --------------------------------------------------
+    // Encerramento controlado do fluxo
+    // --------------------------------------------------
     setTimeout(() => {
-        window.location.reload();
+        const modalInstance = bootstrap.Modal.getInstance(modalAberto);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+        // A tabela já foi atualizada via HTMX swap,
+        // não é necessário recarregar a página inteira.
     }, 3000);
 });
+
 
 /* ==========================================================
    EVENTO CUSTOMIZADO – planilhaExcluida
