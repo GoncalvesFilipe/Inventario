@@ -11,8 +11,7 @@
 </div>
 
 <div class="modal-footer">
-  <form hx-post="{% url 'excluir_patrimonio' patrimonio.pk %}" hx-target="#tabela-patrimonios" hx-swap="outerHTML"
-    hx-trigger="submit">
+  <form hx-post="{% url 'excluir_patrimonio' patrimonio.pk %}" hx-target="#tabela-patrimonios" hx-swap="outerHTML">
     {% csrf_token %}
     <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

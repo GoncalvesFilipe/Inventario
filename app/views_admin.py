@@ -258,7 +258,7 @@ def patrimonio_list(request):
     patrimonios = patrimonios.order_by('id')
 
     # Paginação configurada com 4 itens por página
-    paginator = Paginator(patrimonios, 7)
+    paginator = Paginator(patrimonios, 6)
 
     try:
         lista_patrimonios = paginator.page(pagina_numero)
@@ -383,17 +383,16 @@ def confirmar_exclusao_patrimonio(request, pk):
     )
 
 # ==========================================================
-# EXCLUSÃO DEFINITIVA DE PATRIMÔNIO
+# EXCLUSÃO DE PATRIMÔNIO
 # ----------------------------------------------------------
-# Responsável pela remoção permanente de um bem patrimonial
+# Responsável por remover um bem patrimonial específico
 # do sistema de inventário.
 #
 # Fluxo:
 # 1) Recebe requisição POST via HTMX
-# 2) Exclui o patrimônio solicitado
-# 3) Renderiza novamente a tabela de patrimônios atualizada
-# 4) Dispara evento customizado "patrimonioExcluido"
-#    para feedback visual e recarregamento da página
+# 2) Exclui o patrimônio solicitado do banco
+# 3) Dispara evento HTMX "patrimonioExcluido" para feedback
+#    visual e atualização parcial da tabela
 # ==========================================================
 @login_required
 def excluir_patrimonio(request, pk):
@@ -414,27 +413,12 @@ def excluir_patrimonio(request, pk):
     patrimonio.delete()
 
     # ------------------------------------------------------
-    # Recarregamento da lista atualizada de patrimônios
+    # Retorno da resposta + disparo de evento HTMX
     # ------------------------------------------------------
-    patrimonios = Patrimonio.objects.select_related(
-        "setor",
-        "usuario"
-    ).all()
-
-    # ------------------------------------------------------
-    # Renderização do fragmento HTML atualizado para o HTMX
-    # ------------------------------------------------------
-    html = render_to_string(
-        "app_inventario/partials/tabela_patrimonios.html",
-        {"lista_patrimonios": patrimonios},
-        request=request
-    )
-
-    # ------------------------------------------------------
-    # Retorno da tabela + disparo de evento customizado
-    # ------------------------------------------------------
-    response = HttpResponse(html)
-    response["HX-Trigger"] = "patrimonioExcluido"
+    response = HttpResponse("")
+    response["HX-Trigger"] = json.dumps({
+        "patrimonioExcluido": True
+    })
     return response
 
 
