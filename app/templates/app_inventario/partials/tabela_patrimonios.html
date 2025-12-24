@@ -30,24 +30,16 @@
           <td>
             <div class="d-flex flex-md-row flex-column gap-2">
               <!-- Botão Editar -->
-              <button
-                class="btn btn-sm btn-outline-primary w-100"
-                hx-get="{% url 'patrimonio_edit' p.pk %}"
-                hx-target="#modal-patrimonio-body"
-                hx-swap="innerHTML"
-                data-bs-toggle="modal"
-                data-bs-target="#modalPatrimonio"
-              >
+              <button class="btn btn-sm btn-outline-primary w-100" hx-get="{% url 'patrimonio_edit' p.pk %}"
+                hx-target="#modal-patrimonio-body" hx-swap="innerHTML" data-bs-toggle="modal"
+                data-bs-target="#modalPatrimonio">
                 Editar
               </button>
 
               <!-- EXCLUIR -->
-              <button class="btn btn-sm btn-outline-danger"
-                      hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
-                      hx-target="#modal-confirm-body"
-                      hx-swap="innerHTML"
-                      data-bs-toggle="modal"
-                      data-bs-target="#modalConfirm">
+              <button class="btn btn-sm btn-outline-danger" hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
+                hx-target="#modal-confirm-body" hx-swap="innerHTML" data-bs-toggle="modal"
+                data-bs-target="#modalConfirm">
                 Excluir
               </button>
 

@@ -28,6 +28,25 @@ def admin_dashboard(request):
 
 
 # ==========================================================
+# FUNÇÃO DE AUTORIZAÇÃO
+# ----------------------------------------------------------
+# Responsável por centralizar a regra de autorização aplicada
+# às rotinas administrativas sensíveis do sistema.
+#
+# O acesso é concedido exclusivamente a:
+# - Superusuário
+# - Inventariante com flag 'presidente=True'
+# ==========================================================
+def presidente_ou_superuser(user):
+    return (
+        user.is_authenticated and (
+            user.is_superuser or
+            (hasattr(user, "inventariante") and user.inventariante.presidente)
+        )
+    )
+
+
+# ==========================================================
 # FECHAMENTO DE MODAL
 # Retorna uma resposta vazia utilizada pelo HTMX para encerrar
 # modais sem renderizar conteúdo adicional.
@@ -220,6 +239,7 @@ def inventariante_delete(request, pk):
 
 # ==========================================================
 # LISTA DE PATRIMÔNIOS
+# ----------------------------------------------------------
 # Implementa busca, paginação e segregação dos resultados com
 # base no perfil do usuário (administrador ou inventariante).
 # ==========================================================
@@ -228,17 +248,20 @@ def patrimonio_list(request):
     search_query = request.GET.get('q')
     pagina_numero = request.GET.get('page', 1)
 
+    # Regra de permissão unificada: Superusuário ou Inventariante Presidente
     is_admin = (
         request.user.is_superuser or
-        request.user.groups.filter(name="Presidente").exists()
+        (hasattr(request.user, "inventariante") and request.user.inventariante.presidente)
     )
 
+    # Definição do Queryset base
     if is_admin:
         patrimonios = Patrimonio.objects.all()
     else:
         inventariante = get_object_or_404(Inventariante, user=request.user)
         patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
 
+    # Filtro de busca textual
     if search_query:
         patrimonios = patrimonios.filter(
             Q(patrimonio__icontains=search_query) |
@@ -247,73 +270,60 @@ def patrimonio_list(request):
             Q(dependencia__icontains=search_query)
         )
 
-    patrimonios = patrimonios.order_by('id')
-
-    # Paginação configurada com 4 itens por página
-    paginator = Paginator(patrimonios, 6)
-
+    # Paginação (6 itens por página)
+    paginator = Paginator(patrimonios.order_by('id'), 6)
     try:
         lista_patrimonios = paginator.page(pagina_numero)
     except (PageNotAnInteger, EmptyPage):
         lista_patrimonios = paginator.page(1)
 
+    # Contexto unificado
     context = {
         "pagina": "patrimonio",
         "lista_patrimonios": lista_patrimonios,
         "search_query": search_query or "",
         "is_admin": is_admin,
+        "user": request.user,
     }
     
-    # Se o alvo for 'conteudo-patrimonios', envia só a tabela (Busca/Paginação)
+    # Lógica HTMX: Se o alvo for apenas a tabela, não renderiza a página inteira
     if request.headers.get('HX-Target') == 'conteudo-patrimonios':
         return render(request, "app_inventario/partials/tabela_e_paginacao.html", context)
     
-    # Caso contrário (Menu Lateral/F5), envia a lista completa com botões
+    # Caso contrário (F5 ou navegação direta), renderiza a página completa
     return render(request, "app_inventario/patrimonio_list.html", context)
-
 # ==========================================================
 # FORMULÁRIO HTMX DE PATRIMÔNIO
-# Cria novas entradas patrimoniais e retorna apenas a tabela
-# atualizada, evitando recarga completa da página.
+# ----------------------------------------------------------
+# Permite inventariantes comuns adicionarem seus próprios bens.
 # ==========================================================
 @login_required
 def patrimonio_form(request):
     inventariante = get_object_or_404(Inventariante, user=request.user)
-
     if request.method == "POST":
         form = PatrimonioForm(request.POST)
-
         if form.is_valid():
             patrimonio = form.save(commit=False)
             patrimonio.inventariante = inventariante
             patrimonio.save()
-
-            patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
-
             tabela = render_to_string(
                 "app_inventario/partials/tabela_patrimonios.html",
-                {"patrimonios": patrimonios},
+                {"patrimonios": Patrimonio.objects.filter(inventariante=inventariante)},
                 request=request
             )
             return HttpResponse(tabela)
-
-    form = PatrimonioForm()
-    return render(
-        request,
-        "app_inventario/partials/form_patrimonio.html",
-        {"form": form}
-    )
+    return render(request, "app_inventario/partials/form_patrimonio.html", {"form": PatrimonioForm()})
 
 
 # ==========================================================
 # ADIÇÃO DE PATRIMÔNIO
-# Tratamento específico para inserção convencional de dados
-# patrimoniais, preservando associação obrigatória ao usuário.
+# ----------------------------------------------------------
+# Restrito a superusuário ou inventariante presidente.
 # ==========================================================
 @login_required
+@user_passes_test(presidente_ou_superuser)
 def patrimonio_add(request):
     inventariante = get_object_or_404(Inventariante, user=request.user)
-
     if request.method == "POST":
         form = PatrimonioForm(request.POST, user=request.user)
         if form.is_valid():
@@ -321,98 +331,54 @@ def patrimonio_add(request):
             patrimonio.inventariante = inventariante
             patrimonio.save()
             return HttpResponse("OK")
-    else:
-        form = PatrimonioForm(user=request.user)
-
-    return render(
-        request,
-        "app_inventario/partials/form_patrimonio.html",
-        {"form": form}
-    )
-
+    return render(request, "app_inventario/partials/form_patrimonio.html", {"form": PatrimonioForm(user=request.user)})
 
 # ==========================================================
 # EDIÇÃO DE PATRIMÔNIO
-# Permite atualização de dados já cadastrados. Suporta uploads
-# e recarrega a página ao concluir alterações.
+# ----------------------------------------------------------
+# Restrito a superusuário ou inventariante presidente.
 # ==========================================================
 @login_required
+@user_passes_test(presidente_ou_superuser)
 def patrimonio_edit(request, pk):
     patrimonio = get_object_or_404(Patrimonio, pk=pk)
-
     if request.method == "POST":
         form = PatrimonioForm(request.POST, request.FILES, instance=patrimonio)
         if form.is_valid():
             form.save()
             return HttpResponse("", headers={"HX-Refresh": "true"})
-    else:
-        form = PatrimonioForm(instance=patrimonio)
-
-    return render(
-        request,
-        "app_inventario/partials/form_patrimonio.html",
-        {"form": form, "modo_edicao": True, "patrimonio": patrimonio}
-    )
+    return render(request, "app_inventario/partials/form_patrimonio.html", {
+        "form": PatrimonioForm(instance=patrimonio),
+        "modo_edicao": True,
+        "patrimonio": patrimonio
+    })
 
 # ==========================================================
 # CONFIRMAÇÃO DE EXCLUSÃO DE PATRIMÔNIO
-# Exibe modal de confirmação prévia, garantindo segurança
-# e previsibilidade na operação de remoção definitiva de
-# bens patrimoniais no contexto administrativo.
+# ----------------------------------------------------------
+# Restrito a superusuário ou inventariante presidente.
 # ==========================================================
 @login_required
+@user_passes_test(presidente_ou_superuser)
 def confirmar_exclusao_patrimonio(request, pk):
-    # ------------------------------------------------------
-    # Recuperação segura do patrimônio
-    # ------------------------------------------------------
     patrimonio = get_object_or_404(Patrimonio, pk=pk)
+    return render(request, "app_inventario/partials/confirmar_exclusao_patrimonio.html", {"patrimonio": patrimonio})
 
-    # ------------------------------------------------------
-    # Renderização do modal de confirmação (HTMX)
-    # ------------------------------------------------------
-    return render(
-        request,
-        "app_inventario/partials/confirmar_exclusao_patrimonio.html",
-        {"patrimonio": patrimonio}
-    )
 
 # ==========================================================
 # EXCLUSÃO DE PATRIMÔNIO
 # ----------------------------------------------------------
-# Responsável por remover um bem patrimonial específico
-# do sistema de inventário.
-#
-# Fluxo:
-# 1) Recebe requisição POST via HTMX
-# 2) Exclui o patrimônio solicitado do banco
-# 3) Dispara evento HTMX "patrimonioExcluido" para feedback
-#    visual e atualização parcial da tabela
+# Restrito a superusuário ou inventariante presidente.
 # ==========================================================
 @login_required
+@user_passes_test(presidente_ou_superuser)
 def excluir_patrimonio(request, pk):
-    # ------------------------------------------------------
-    # Validação do método HTTP
-    # ------------------------------------------------------
     if request.method != "POST":
         return HttpResponse(status=405)
-
-    # ------------------------------------------------------
-    # Recuperação segura do patrimônio
-    # ------------------------------------------------------
     patrimonio = get_object_or_404(Patrimonio, pk=pk)
-
-    # ------------------------------------------------------
-    # Exclusão definitiva do registro
-    # ------------------------------------------------------
     patrimonio.delete()
-
-    # ------------------------------------------------------
-    # Retorno da resposta + disparo de evento HTMX
-    # ------------------------------------------------------
     response = HttpResponse("")
-    response["HX-Trigger"] = json.dumps({
-        "patrimonioExcluido": True
-    })
+    response["HX-Trigger"] = json.dumps({"patrimonioExcluido": True})
     return response
 
 
@@ -566,35 +532,6 @@ def adicionar_na_planilha(request):
     return HttpResponse("Registro salvo com sucesso")
 
 
-# ==========================================================
-# FUNÇÃO DE AUTORIZAÇÃO
-# ----------------------------------------------------------
-# Responsável por centralizar a regra de
-# autorização aplicada às rotinas administrativas sensíveis
-# do sistema.
-#
-# O acesso é concedido exclusivamente a:
-# - Superusuário
-# - Usuário/Presidente"
-# Ambos são considerados perfis de nível administrativo pleno,
-# possuindo autorização irrestrita para:
-# - Inclusão de registros
-# - Gerenciamento de listas
-# - Operações sensíveis do sistema
-# ==========================================================
-def presidente_ou_superuser(user):
-    """
-    Critério de autorização:
-    - Superusuário do sistema (is_superuser)
-    OU
-    - Usuário pertencente ao grupo 'Presidente'
-    """
-    return (
-        user.is_authenticated and (
-            user.is_superuser or
-            user.groups.filter(name="Presidente").exists()
-        )
-    )
 
 # ==========================================================
 # REGISTRO DE PLANILHA (UPLOAD MANUAL)
