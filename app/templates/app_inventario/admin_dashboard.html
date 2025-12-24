@@ -8,12 +8,8 @@
   <h2 class="text-success text-center mb-4 fw-bold">Painel Administrativo</h2>
 
   <div class="row">
-
-    <!-- Menu lateral -->
     <div class="col-md-3 mb-3">
       <div id="menu-admin" class="list-group shadow-sm">
-
-        <!-- LISTA DE INVENTARIANTES -->
         <button class="list-group-item list-group-item-action"
           hx-get="{% url 'inventariantes_list' %}"
           hx-target="#conteudo-admin"
@@ -21,18 +17,15 @@
           👤 Inventariantes
         </button>
 
-        <!-- LISTA DE PATRIMÔNIOS -->
         <button class="list-group-item list-group-item-action"
           hx-get="{% url 'patrimonio_list' %}"
           hx-target="#conteudo-admin"
           hx-swap="innerHTML">
           💼 Patrimônios
         </button>
-
       </div>
     </div>
 
-    <!-- Área dinâmica -->
     <div class="col-md-9">
       <div id="conteudo-admin" class="border rounded-3 p-3 bg-light shadow-sm">
         <p class="text-muted text-center mb-0">
@@ -40,12 +33,6 @@
         </p>
       </div>
     </div>
-
   </div>
 </div>
-
-<!-- OBSERVAÇÃO IMPORTANTE:  
-     Todos os modais agora estão centralizados no base.html.
-     NÃO colocar nenhum modal aqui dentro! -->
-
 {% endblock %}
