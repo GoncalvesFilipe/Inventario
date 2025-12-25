@@ -375,12 +375,35 @@ def confirmar_exclusao_patrimonio(request, pk):
 def excluir_patrimonio(request, pk):
     if request.method != "POST":
         return HttpResponse(status=405)
+    
     patrimonio = get_object_or_404(Patrimonio, pk=pk)
     patrimonio.delete()
-    response = HttpResponse("")
-    response["HX-Trigger"] = json.dumps({"patrimonioExcluido": True})
-    return response
+    
+    # Recarrega a lista para atualizar a tabela via HTMX
+    is_admin = presidente_ou_superuser(request.user)
+    patrimonios_all = Patrimonio.objects.all().order_by('id')
+    paginator = Paginator(patrimonios_all, 6)
+    lista_patrimonios = paginator.page(1)
 
+    context = {
+        "lista_patrimonios": lista_patrimonios,
+        "is_admin": is_admin,
+    }
+
+    # Renderiza apenas o fragmento da tabela
+    html = render_to_string(
+        "app_inventario/partials/tabela_e_paginacao.html", 
+        context, 
+        request=request
+    )
+    
+    response = HttpResponse(html)
+    # Dispara os eventos para fechar o modal e avisar o frontend
+    response["HX-Trigger"] = json.dumps({
+        "patrimonioExcluido": True,
+        "closeModal": True 
+    })
+    return response
 
 # ==========================================================
 # EXCLUSÃO DE PLANILHA DE PATRIMÔNIO

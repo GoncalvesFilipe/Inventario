@@ -10,29 +10,52 @@
   <div class="row">
     <div class="col-md-3 mb-3">
       <div id="menu-admin" class="list-group shadow-sm">
-        <button class="list-group-item list-group-item-action"
+        <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
           hx-get="{% url 'inventariantes_list' %}"
           hx-target="#conteudo-admin"
-          hx-swap="innerHTML">
-          👤 Inventariantes
+          hx-indicator="#spinner-admin">
+          <span>👤 Inventariantes</span>
         </button>
 
-        <button class="list-group-item list-group-item-action"
+        <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
           hx-get="{% url 'patrimonio_list' %}"
           hx-target="#conteudo-admin"
-          hx-swap="innerHTML">
-          💼 Patrimônios
+          hx-indicator="#spinner-admin">
+          <span>💼 Patrimônios</span>
         </button>
+      </div>
+
+      <div id="spinner-admin" class="htmx-indicator text-center mt-3">
+        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+        <span class="ms-2 small text-muted">Carregando...</span>
       </div>
     </div>
 
     <div class="col-md-9">
-      <div id="conteudo-admin" class="border rounded-3 p-3 bg-light shadow-sm">
-        <p class="text-muted text-center mb-0">
-          Selecione uma opção no menu para começar.
-        </p>
+      <div id="conteudo-admin" class="border rounded-4 p-1 bg-white shadow-sm min-vh-50">
+        <div class="p-5 text-center">
+          <i class="bi bi-arrow-left-circle text-success fs-1"></i>
+          <p class="text-muted mt-2">
+            Selecione uma opção no menu lateral para gerenciar o sistema.
+          </p>
+        </div>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Mantém o botão clicado com a cor de destaque (active)
+  document.addEventListener('htmx:afterOnLoad', function(evt) {
+    if (evt.detail.boosted) return;
+    const menuButtons = document.querySelectorAll('#menu-admin .list-group-item');
+    menuButtons.forEach(btn => btn.classList.remove('active', 'bg-success', 'text-white'));
+    
+    if (evt.detail.elt.classList.contains('list-group-item')) {
+      evt.detail.elt.classList.add('active', 'bg-success', 'border-success');
+    }
+  });
+</script>
 {% endblock %}

@@ -1,254 +1,359 @@
-{% load django_bootstrap5 %}
-{% load static %}
+{% load django_bootstrap5 %} {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Inventário{% endblock %}</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Inventário{% endblock %}</title>
+    {% bootstrap_css %}
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <link
+      rel="shortcut icon"
+      href="https://ifbaiano.edu.br/portal/ingresso-de-estudantes-2018/wp-content/themes/ProcessoSeletivo2018/img/botoao-home-if-baiano.png"
+      type="image/x-icon"
+    />
+  </head>
 
-  {% bootstrap_css %}
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link rel="shortcut icon" href="https://ifbaiano.edu.br/portal/ingresso-de-estudantes-2018/wp-content/themes/ProcessoSeletivo2018/img/botoao-home-if-baiano.png" type="image/x-icon">
-</head>
+  <body class="{% block body_class %}{% endblock %}">
+    <div class="d-flex flex-column min-vh-100">
+      <!-- Navbar fixa -->
+      <nav
+        class="navbar navbar-dark bg-success bg-gradient-0 fixed-top shadow-sm"
+      >
+        <div class="container-fluid">
+          <a
+            class="navbar-brand fw-semibold text-white"
+            href="{% url 'index' %}"
+            >Inventário</a
+          >
 
-<body class="{% block body_class %}{% endblock %}">
-  <div class="d-flex flex-column min-vh-100">
+          <button
+            class="navbar-toggler ms-auto"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasNavbar"
+            aria-controls="offcanvasNavbar"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
 
-    <!-- Navbar fixa -->
-    <nav class="navbar navbar-dark bg-success bg-gradient-0 fixed-top shadow-sm">
-      <div class="container-fluid">
-        <a class="navbar-brand fw-semibold text-white" href="{% url 'index' %}">Inventário</a>
+          <div
+            class="offcanvas offcanvas-end text-bg-success bg-gradient-0"
+            tabindex="-1"
+            id="offcanvasNavbar"
+            aria-labelledby="offcanvasNavbarLabel"
+          >
+            <div class="offcanvas-header border-bottom border-light">
+              <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel">
+                Menu
+              </h5>
+              <button
+                type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="offcanvas"
+                aria-label="Fechar"
+              ></button>
+            </div>
 
-        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="offcanvas"
-          data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+            <div class="offcanvas-body">
+              <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                <!-- Início -->
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="{% url 'index' %}">
+                    <i class="bi bi-house-door-fill me-1"></i> Início
+                  </a>
+                </li>
 
-        <div class="offcanvas offcanvas-end text-bg-success bg-gradient-0" tabindex="-1" id="offcanvasNavbar"
-          aria-labelledby="offcanvasNavbarLabel">
+                <!-- Painel Administrativo -->
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                  <a
+                    class="nav-link text-white"
+                    href="{% url 'admin_dashboard' %}"
+                  >
+                    <i class="bi bi-speedometer2 me-1"></i> Painel
+                    Administrativo
+                  </a>
+                </li>
+                {% endif %}
 
-          <div class="offcanvas-header border-bottom border-light">
-            <h5 class="offcanvas-title text-white" id="offcanvasNavbarLabel">Menu</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
-              aria-label="Fechar"></button>
+                <!-- Autenticação -->
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right me-1"></i> Sair
+                  </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="{% url 'login' %}">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
+                  </a>
+                </li>
+
+                <!-- Registrar via modal -->
+                <li class="nav-item">
+                  <a
+                    class="nav-link text-white"
+                    hx-get="{% url 'register' %}"
+                    hx-target="#modal-registro-body"
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalRegistro"
+                  >
+                    <i class="bi bi-person-plus me-1"></i> Registrar
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Conteúdo principal -->
+      <main class="flex-fill container mt-5 pt-5 mb-5">
+        <!-- Mensagens de feedback -->
+        {% if messages %} {% for message in messages %}
+        <div
+          class="alert alert-{{ message.tags }} alert-dismissible fade show"
+          role="alert"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Fechar"
+          ></button>
+        </div>
+        {% endfor %} {% endif %} {% block content %}{% endblock %}
+      </main>
+
+      <!-- Rodapé -->
+      <footer
+        class="bg-success bg-gradient-0 text-white text-center py-3 shadow-sm d-none d-md-block"
+      >
+        <p class="mb-0">
+          &copy; 2025 Sistema de Inventário. Acesso restrito a funcionários
+          autorizados.
+        </p>
+      </footer>
+    </div>
+
+    <!-- MODAL DE REGISTRO -->
+    <div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 shadow">
+          <div class="modal-header bg-success text-white rounded-top-4">
+            <h5 class="modal-title">Registrar Usuário</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
 
-          <div class="offcanvas-body">
-            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+          <div class="modal-body" id="modal-registro-body"></div>
+        </div>
+      </div>
+    </div>
 
-              <!-- Início -->
-              <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'index' %}">
-                  <i class="bi bi-house-door-fill me-1"></i> Início
-                </a>
-              </li>
-
-              <!-- Painel Administrativo -->
-              {% if user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'admin_dashboard' %}">
-                  <i class="bi bi-speedometer2 me-1"></i> Painel Administrativo
-                </a>
-              </li>
-              {% endif %}
-
-              <!-- Autenticação -->
-              {% if user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'logout' %}">
-                  <i class="bi bi-box-arrow-right me-1"></i> Sair
-                </a>
-              </li>
-              {% else %}
-              <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'login' %}">
-                  <i class="bi bi-box-arrow-in-right me-1"></i> Entrar
-                </a>
-              </li>
-
-              <!-- Registrar via modal -->
-              <li class="nav-item">
-                <a class="nav-link text-white" hx-get="{% url 'register' %}" hx-target="#modal-registro-body"
-                  hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalRegistro">
-                  <i class="bi bi-person-plus me-1"></i> Registrar
-                </a>
-              </li>
-              {% endif %}
-
-            </ul>
+    <!--  MODAL INVENTARIANTE         -->
+    <div
+      class="modal fade"
+      id="modalInventariante"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable"
+      >
+        <div class="modal-content rounded-4 shadow">
+          <div class="modal-header bg-success text-white rounded-top-4">
+            <h5 class="modal-title">Inventariante</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
 
-        </div>
-      </div>
-    </nav>
-
-    <!-- Conteúdo principal -->
-    <main class="flex-fill container mt-5 pt-5 mb-5">
-
-      <!-- Mensagens de feedback -->
-      {% if messages %}
-      {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-      </div>
-      {% endfor %}
-      {% endif %}
-
-      {% block content %}{% endblock %}
-    </main>
-
-    <!-- Rodapé -->
-    <footer class="bg-success bg-gradient-0 text-white text-center py-3 shadow-sm d-none d-md-block">
-      <p class="mb-0">&copy; 2025 Sistema de Inventário. Acesso restrito a funcionários autorizados.</p>
-    </footer>
-
-  </div>
-
-  <!-- MODAL DE REGISTRO -->
-  <div class="modal fade" id="modalRegistro" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content rounded-4 shadow">
-
-        <div class="modal-header bg-success text-white rounded-top-4">
-          <h5 class="modal-title">Registrar Usuário</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body" id="modal-registro-body"></div>
-
-      </div>
-    </div>
-  </div>
-
-  <!--  MODAL INVENTARIANTE         -->
-  <div class="modal fade" id="modalInventariante" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-      <div class="modal-content rounded-4 shadow">
-
-        <div class="modal-header bg-success text-white rounded-top-4">
-          <h5 class="modal-title">Inventariante</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-
-        <!-- body -->
-        <div id="modal-inventariante-body" class="modal-body p-3"></div>
-
-      </div>
-    </div>
-  </div>
-
-  <!--  MODAL PATRIMÔNIO -->
-  <div class="modal fade" id="modalPatrimonio" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-      <div class="modal-content rounded-4 shadow">
-
-        <div class="modal-header bg-success text-white rounded-top-4">
-          <h5 class="modal-title">Patrimônio</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-
-        <!-- BODY PARA HTMX -->
-        <div id="modal-patrimonio-body" class="modal-body p-3"></div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE CONFIRMAÇÃO -->
-  <div class="modal fade" id="modalConfirm" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content rounded-4 shadow">
-        <div id="modal-confirm-body"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL ACESSO NEGADO -->
-  <div class="modal fade" id="modalErro" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content" id="modal-erro-body">
-        <!-- Conteúdo será carregado via HTMX -->
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL UPLOAD DE PLANILHA -->
-  <div class="modal fade" id="modalUploadPlanilha" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content rounded-4 shadow">
-
-        <div class="modal-header bg-success text-white rounded-top-4">
-          <h5 class="modal-title">
-            Upload Planilha de Patrimônios
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body" id="modal-upload-planilha-body">
-          <p class="text-muted">
-            Esta funcionalidade é restrita a usuários com perfil
-            <strong>Presidente</strong> ou <strong>Superusuário</strong>.
-          </p>
-
-          <!-- O formulário será carregado via HTMX -->
+          <!-- body -->
+          <div id="modal-inventariante-body" class="modal-body p-3"></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Toast container -->
-  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000">
-    <div id="toastPlanilha" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
-      aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body">
-          Planilha enviada com sucesso!
+    <!--  MODAL PATRIMÔNIO -->
+    <div
+      class="modal fade"
+      id="modalPatrimonio"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable"
+      >
+        <div class="modal-content rounded-4 shadow">
+          <div class="modal-header bg-success text-white rounded-top-4">
+            <h5 class="modal-title">Patrimônio</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+
+          <!-- BODY PARA HTMX -->
+          <div id="modal-patrimonio-body" class="modal-body p-3"></div>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-          aria-label="Close"></button>
       </div>
     </div>
-  </div>
 
-  <!-- Modal de confirmação de exclusão da planilha -->
-  <div class="modal fade" id="modalConfirmacaoPlanilha" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-
-        <div class="modal-header bg-danger text-white rounded-top-4">
-          <h5 class="modal-title">Confirmar Exclusão</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <!-- MODAL DE CONFIRMAÇÃO -->
+    <div class="modal fade" id="modalConfirm" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+          <div id="modal-confirm-body"></div>
         </div>
-
-        <!-- ESTE ID precisa existir para o hx-target -->
-        <div class="modal-body" id="modal-confirmacao-planilha-body">
-          <!-- O conteúdo da confirmação será injetado aqui via HTMX -->
-        </div>
-
       </div>
     </div>
-  </div>
 
+    <!-- MODAL ACESSO NEGADO -->
+    <div class="modal fade" id="modalErro" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content" id="modal-erro-body">
+          <!-- Conteúdo será carregado via HTMX -->
+        </div>
+      </div>
+    </div>
 
+    <!-- MODAL UPLOAD DE PLANILHA -->
+    <div
+      class="modal fade"
+      id="modalUploadPlanilha"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 shadow">
+          <div class="modal-header bg-success text-white rounded-top-4">
+            <h5 class="modal-title">Upload Planilha de Patrimônios</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+          <div class="modal-body" id="modal-upload-planilha-body">
+            <p class="text-muted">
+              Esta funcionalidade é restrita a usuários com perfil
+              <strong>Presidente</strong> ou <strong>Superusuário</strong>.
+            </p>
 
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-  <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+            <!-- O formulário será carregado via HTMX -->
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <script>
-    window.CSRF_TOKEN = "{{ csrf_token }}";
-  </script>
+    <!-- Toast container -->
+    <div
+      class="toast-container position-fixed top-0 end-0 p-3"
+      style="z-index: 2000"
+    >
+      <div
+        id="toastPlanilha"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body">Planilha enviada com sucesso!</div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
+        </div>
+      </div>
+    </div>
 
-  <script src="{% static 'app/js/base.js' %}"></script>
+    <!-- Modal de confirmação de exclusão da planilha -->
+    <div
+      class="modal fade"
+      id="modalConfirmacaoPlanilha"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white rounded-top-4">
+            <h5 class="modal-title">Confirmar Exclusão</h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
 
-  <script src="{% static 'app/js/htmx_events.js' %}"></script>
+          <!-- ESTE ID precisa existir para o hx-target -->
+          <div class="modal-body" id="modal-confirmacao-planilha-body">
+            <!-- O conteúdo da confirmação será injetado aqui via HTMX -->
+          </div>
+        </div>
+      </div>
+    </div>
 
-  {% block extra_js %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-</body>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
 
+    <script>
+      window.CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+
+    <script src="{% static 'app/js/base.js' %}"></script>
+
+    <script src="{% static 'app/js/htmx_events.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+      // Escuta o evento enviado pelo Django para fechar modais
+      document.body.addEventListener("closeModal", function () {
+        // Tenta fechar todos os modais possíveis
+        const modais = [
+          "modalConfirm",
+          "modalPatrimonio",
+          "modalInventariante",
+        ];
+        modais.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            const instance = bootstrap.Modal.getInstance(el);
+            if (instance) instance.hide();
+          }
+        });
+      });
+
+      // SEGURANÇA: Remove o fundo escuro travado quando qualquer modal fecha
+      document.addEventListener("hidden.bs.modal", function () {
+        const backdrops = document.querySelectorAll(".modal-backdrop");
+        backdrops.forEach((b) => b.remove());
+        document.body.style.overflow = "auto";
+        document.body.style.paddingRight = "0";
+      });
+    </script>
+  </body>
 </html>

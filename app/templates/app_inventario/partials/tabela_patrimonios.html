@@ -1,10 +1,10 @@
 <div id="tabela-patrimonios">
-
   <!-- Wrapper para rolagem horizontal -->
   <div class="table-responsive">
-
-    <table class="table table-hover align-middle mb-0" style="min-width: 1200px;">
-
+    <table
+      class="table table-hover align-middle mb-0"
+      style="min-width: 1200px"
+    >
       <thead class="table-success">
         <tr>
           <th class="text-nowrap">Nº Patrimônio</th>
@@ -29,23 +29,27 @@
           </td>
           <td>
             <div class="d-flex flex-md-row flex-column gap-2">
-              <!-- Botão Editar -->
-              <button class="btn btn-sm btn-outline-primary w-100" hx-get="{% url 'patrimonio_edit' p.pk %}"
-                hx-target="#modal-patrimonio-body" hx-swap="innerHTML" data-bs-toggle="modal"
-                data-bs-target="#modalPatrimonio">
+              <button
+                class="btn btn-sm btn-outline-primary w-100"
+                hx-get="{% url 'patrimonio_edit' p.pk %}"
+                hx-target="#modal-patrimonio-body"
+                data-bs-toggle="modal"
+                data-bs-target="#modalPatrimonio"
+              >
                 Editar
               </button>
 
-              <!-- EXCLUIR -->
-              <button class="btn btn-sm btn-outline-danger" hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
-                hx-target="#modal-confirm-body" hx-swap="innerHTML" data-bs-toggle="modal"
-                data-bs-target="#modalConfirm">
+              <button
+                class="btn btn-sm btn-outline-danger w-100"
+                hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
+                hx-target="#modal-confirm-body"
+                data-bs-toggle="modal"
+                data-bs-target="#modalConfirm"
+              >
                 Excluir
               </button>
-
             </div>
           </td>
-
         </tr>
         {% empty %}
         <tr>
@@ -55,8 +59,6 @@
         </tr>
         {% endfor %}
       </tbody>
-
     </table>
-
   </div>
 </div>

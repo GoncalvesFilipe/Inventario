@@ -1,5 +1,5 @@
 <div class="p-3">
-  {# 1. TÍTULO E RESPONSÁVEL (Restaurados conforme a primeira foto) #}
+  {# 1. TÍTULO E RESPONSÁVEL (Estilo Foto 1) #}
   <div class="text-center mb-4">
     <h5 class="fw-bold text-success mb-1">Lista de Patrimônios</h5>
     <p class="text-secondary small">
@@ -7,7 +7,7 @@
     </p>
   </div>
 
-  {# 2. CAMPO DE BUSCA (Restaurado conforme a primeira foto) #}
+  {# 2. CAMPO DE BUSCA (Estilo Foto 1) #}
   <div class="input-group mb-3">
     <input type="text" class="form-control" name="q"
       placeholder="Buscar Patrimônio (Nº, Descrição, Setor, Dependência...)" 
@@ -19,8 +19,8 @@
     <button class="btn btn-outline-secondary" type="button">Buscar</button>
   </div>
 
-  {# 3. BOTÕES DE AÇÃO #}
-  {% if is_admin %}
+  {# 3. BOTÕES DE AÇÃO (Lógica Verde do GitHub: Presidente/Admin) #}
+  {% if is_admin or user.inventariante.presidente %}
   <div class="row g-2 mb-4">
     <div class="col-md-4">
       <button class="btn btn-sm btn-outline-success w-100" 
@@ -46,7 +46,7 @@
   </div>
   {% endif %}
 
-  {# 4. ÁREA DA TABELA (Container para atualizações do HTMX) #}
+  {# 4. ÁREA DA TABELA #}
   <div id="conteudo-patrimonios">
     {% include "app_inventario/partials/tabela_e_paginacao.html" %}
   </div>

@@ -25,15 +25,15 @@
             <button class="btn btn-sm btn-outline-primary w-100" 
               hx-get="{% url 'patrimonio_edit' p.pk %}"
               hx-target="#modal-patrimonio-body" 
-              hx-swap="innerHTML" 
               data-bs-toggle="modal"
               data-bs-target="#modalPatrimonio">
               Editar
             </button>
             <button class="btn btn-sm btn-outline-danger w-100" 
               hx-get="{% url 'confirmar_exclusao_patrimonio' p.pk %}"
-              hx-target="#conteudo-patrimonios" 
-              hx-swap="innerHTML">
+              hx-target="#modal-confirm-body" 
+              data-bs-toggle="modal"
+              data-bs-target="#modalConfirm">
               Excluir
             </button>
           </div>
@@ -47,7 +47,7 @@
     </tbody>
   </table>
 
-  {# NAVEGAÇÃO DE PÁGINAS #}
+  {# NAVEGAÇÃO ORIGINAL RESTRUTURADA #}
   <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center flex-wrap">
       {% with q_param=search_query|urlencode %}
@@ -55,33 +55,27 @@
       {# PRIMEIRA E ANTERIOR #}
       {% if lista_patrimonios.has_previous %}
       <li class="page-item">
-        <a class="page-link" 
-           style="cursor: pointer;"
+        <a class="page-link" style="cursor: pointer;"
            hx-get="{% url 'patrimonio_list' %}?page=1{% if q_param %}&q={{ q_param }}{% endif %}"
-           hx-target="#conteudo-patrimonios" 
-           hx-swap="innerHTML">&laquo; Primeira</a>
+           hx-target="#conteudo-patrimonios" hx-swap="innerHTML">« Primeira</a>
       </li>
       <li class="page-item">
-        <a class="page-link" 
-           style="cursor: pointer;"
+        <a class="page-link" style="cursor: pointer;"
            hx-get="{% url 'patrimonio_list' %}?page={{ lista_patrimonios.previous_page_number }}{% if q_param %}&q={{ q_param }}{% endif %}"
-           hx-target="#conteudo-patrimonios" 
-           hx-swap="innerHTML">Anterior</a>
+           hx-target="#conteudo-patrimonios" hx-swap="innerHTML">Anterior</a>
       </li>
       {% else %}
-      <li class="page-item disabled"><span class="page-link">&laquo; Primeira</span></li>
+      <li class="page-item disabled"><span class="page-link">« Primeira</span></li>
       <li class="page-item disabled"><span class="page-link">Anterior</span></li>
       {% endif %}
 
-      {# NÚMEROS DAS PÁGINAS #}
+      {# NÚMEROS #}
       {% for num in lista_patrimonios.paginator.page_range %}
         {% if num >= lista_patrimonios.number|add:-2 and num <= lista_patrimonios.number|add:2 %}
           <li class="page-item {% if num == lista_patrimonios.number %}active{% endif %}">
-            <a class="page-link" 
-               style="cursor: pointer;"
+            <a class="page-link" style="cursor: pointer;"
                hx-get="{% url 'patrimonio_list' %}?page={{ num }}{% if q_param %}&q={{ q_param }}{% endif %}"
-               hx-target="#conteudo-patrimonios"
-               hx-swap="innerHTML">{{ num }}</a>
+               hx-target="#conteudo-patrimonios" hx-swap="innerHTML">{{ num }}</a>
           </li>
         {% endif %}
       {% endfor %}
@@ -89,26 +83,21 @@
       {# PRÓXIMA E ÚLTIMA #}
       {% if lista_patrimonios.has_next %}
       <li class="page-item">
-        <a class="page-link" 
-           style="cursor: pointer;"
+        <a class="page-link" style="cursor: pointer;"
            hx-get="{% url 'patrimonio_list' %}?page={{ lista_patrimonios.next_page_number }}{% if q_param %}&q={{ q_param }}{% endif %}"
-           hx-target="#conteudo-patrimonios" 
-           hx-swap="innerHTML">Próxima</a>
+           hx-target="#conteudo-patrimonios" hx-swap="innerHTML">Próxima</a>
       </li>
       <li class="page-item">
-        <a class="page-link" 
-           style="cursor: pointer;"
+        <a class="page-link" style="cursor: pointer;"
            hx-get="{% url 'patrimonio_list' %}?page={{ lista_patrimonios.paginator.num_pages }}{% if q_param %}&q={{ q_param }}{% endif %}"
-           hx-target="#conteudo-patrimonios" 
-           hx-swap="innerHTML">Última &raquo;</a>
+           hx-target="#conteudo-patrimonios" hx-swap="innerHTML">Última »</a>
       </li>
       {% else %}
       <li class="page-item disabled"><span class="page-link">Próxima</span></li>
-      <li class="page-item disabled"><span class="page-link">Última &raquo;</span></li>
+      <li class="page-item disabled"><span class="page-link">Última »</span></li>
       {% endif %}
 
       {% endwith %}
     </ul>
   </nav>
-
 </div>
