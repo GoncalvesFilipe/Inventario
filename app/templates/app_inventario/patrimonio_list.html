@@ -21,18 +21,17 @@
   {% endif %}
 
   {# CAMPO DE BUSCA COM HTMX #}
-  <div class="input-group mb-3 mt-3">
-    <input type="text" class="form-control" name="q"
+  <div class="form-floating mb-3 mt-3">
+    <input type="text" class="form-control" name="q" id="id_busca"
       placeholder="Buscar Patrimônio (Nº, Descrição, Setor, Dependência...)" value="{{ search_query }}"
       hx-get="{% url 'patrimonio_list' %}" hx-trigger="keyup changed delay:750ms, search"
-      hx-target="#conteudo-patrimonios" hx-swap="innerHTML" hx-indicator="#loading-indicator">
+      hx-target="#conteudo-patrimonios" hx-swap="innerHTML" hx-indicator="#loading-indicator" required>
+    <label for="id_busca">Buscar Patrimônio</label>
 
-    <button class="btn btn-outline-secondary" type="button">
-      <span id="loading-indicator" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
-        style="display: none;"></span>
-      Buscar
-    </button>
+    <span id="loading-indicator" class="spinner-border spinner-border-sm text-success position-absolute end-0 me-3 mt-2"
+      role="status" aria-hidden="true" style="display: none;"></span>
   </div>
+
 
   {# BOTÕES DE AÇÃO PRINCIPAIS #}
   <div class="d-flex justify-content-center gap-2 mt-2">
