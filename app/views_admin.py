@@ -7,13 +7,11 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.files.storage import FileSystemStorage
-from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import PatrimonioForm, InventarianteUserForm
 from .models import Inventariante, Patrimonio
 from .decorators import admin_required
-
 from .decorators import presidente_ou_superuser
 
 
@@ -180,6 +178,7 @@ def inventariante_edit(request, pk):
 
 # ==========================================================
 # CONFIRMAÇÃO DE EXCLUSÃO DE INVENTARIANTE
+# ----------------------------------------------------------
 # Exibe modal solicitando confirmação prévia antes de proceder
 # à remoção definitiva do registro.
 # ==========================================================
@@ -194,7 +193,8 @@ def inventariante_delete_confirm(request, pk):
 
 
 # ==========================================================
-# EXCLUSÃO DEFINITIVA DE INVENTARIANTE
+# EXCLUSÃO DE INVENTARIANTE
+# ----------------------------------------------------------
 # Realiza a remoção tanto do registro Inventariante quanto do
 # usuário associado, caso exista, e aciona recarga dinâmica da
 # listagem via HTMX.
@@ -232,10 +232,10 @@ def inventariante_delete(request, pk):
 
 # ==========================================================
 # PATRIMÔNIOS
+# ----------------------------------------------------------
 # Módulo responsável pelo gerenciamento completo dos bens
 # patrimoniais, incluindo listagem, cadastro, edição e exclusão.
 # ==========================================================
-
 
 # ==========================================================
 # LISTA DE PATRIMÔNIOS
@@ -245,39 +245,55 @@ def inventariante_delete(request, pk):
 # ==========================================================
 @login_required
 def patrimonio_list(request):
+    # Recupera parâmetros de busca e paginação
     search_query = request.GET.get('q')
     pagina_numero = request.GET.get('page', 1)
 
-    # Regra de permissão unificada: Superusuário ou Inventariante Presidente
+    # ------------------------------------------------------
+    # Regra de permissão unificada:
+    # - Superusuário
+    # - Inventariante Presidente
+    # ------------------------------------------------------
     is_admin = (
         request.user.is_superuser or
         (hasattr(request.user, "inventariante") and request.user.inventariante.presidente)
     )
 
+    # ------------------------------------------------------
     # Definição do Queryset base
+    # ------------------------------------------------------
     if is_admin:
         patrimonios = Patrimonio.objects.all()
     else:
         inventariante = get_object_or_404(Inventariante, user=request.user)
         patrimonios = Patrimonio.objects.filter(inventariante=inventariante)
 
+    # ------------------------------------------------------
     # Filtro de busca textual
+    # ------------------------------------------------------
     if search_query:
         patrimonios = patrimonios.filter(
-            Q(patrimonio__icontains=search_query) |
+            Q(tombo__icontains=search_query) |
             Q(descricao__icontains=search_query) |
             Q(setor__icontains=search_query) |
-            Q(dependencia__icontains=search_query)
+            Q(dependencia__icontains=search_query) |
+            Q(fornecedor__icontains=search_query) |
+            Q(numero_documento__icontains=search_query) |
+            Q(conta_contabil__icontains=search_query)
         )
 
+    # ------------------------------------------------------
     # Paginação (6 itens por página)
+    # ------------------------------------------------------
     paginator = Paginator(patrimonios.order_by('id'), 6)
     try:
         lista_patrimonios = paginator.page(pagina_numero)
     except (PageNotAnInteger, EmptyPage):
         lista_patrimonios = paginator.page(1)
 
+    # ------------------------------------------------------
     # Contexto unificado
+    # ------------------------------------------------------
     context = {
         "pagina": "patrimonio",
         "lista_patrimonios": lista_patrimonios,
@@ -286,12 +302,17 @@ def patrimonio_list(request):
         "user": request.user,
     }
     
-    # Lógica HTMX: Se o alvo for apenas a tabela, não renderiza a página inteira
+    # ------------------------------------------------------
+    # Lógica HTMX:
+    # - Se o alvo for apenas a tabela, renderiza parcial
+    # - Caso contrário, renderiza página completa
+    # ------------------------------------------------------
     if request.headers.get('HX-Target') == 'conteudo-patrimonios':
-        return render(request, "app_inventario/partials/tabela_e_paginacao.html", context)
+        return render(request, "app_inventario/partials/tabela_patrimonios.html", context)
     
-    # Caso contrário (F5 ou navegação direta), renderiza a página completa
     return render(request, "app_inventario/patrimonio_list.html", context)
+
+
 # ==========================================================
 # FORMULÁRIO HTMX DE PATRIMÔNIO
 # ----------------------------------------------------------
@@ -392,7 +413,7 @@ def excluir_patrimonio(request, pk):
 
     # Renderiza apenas o fragmento da tabela
     html = render_to_string(
-        "app_inventario/partials/tabela_e_paginacao.html", 
+        "app_inventario/partials/tabela_patrimonios.html", 
         context, 
         request=request
     )
@@ -554,8 +575,6 @@ def adicionar_na_planilha(request):
     # Retorno da resposta
     return HttpResponse("Registro salvo com sucesso")
 
-
-
 # ==========================================================
 # REGISTRO DE PLANILHA (UPLOAD MANUAL)
 # ----------------------------------------------------------
@@ -567,12 +586,22 @@ def adicionar_na_planilha(request):
 # - Superusuário
 #
 # Após o processamento:
-# - Os dados são persistidos no banco de dados
-# - Nenhum conteúdo HTML é retornado
-# - Um evento HTMX é disparado para controle do fluxo
-#   no frontend (feedback visual, fechamento do modal
-#   e atualização da listagem)
+# - Os dados são inseridos no banco de dados
+# - A tabela de patrimônios é renderizada e devolvida
+#   diretamente ao frontend via HTMX
 # ==========================================================
+import json
+import os
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required, user_passes_test
+from openpyxl import load_workbook
+from .models import Inventariante, Patrimonio
+from .utils import presidente_ou_superuser  # supondo que você tenha esse helper
+
 @login_required
 @user_passes_test(presidente_ou_superuser)
 def upload_planilha(request):
@@ -584,53 +613,100 @@ def upload_planilha(request):
 
     planilha = request.FILES["planilha"]
 
-    # Garante diretório de mídia
+    # ------------------------------------------------------
+    # Garante diretório de mídia e salva arquivo enviado
+    # ------------------------------------------------------
     os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
-
     caminho_planilha = os.path.join(settings.MEDIA_ROOT, "registros.xlsx")
-
-    # Salva arquivo enviado
     fs = FileSystemStorage(location=settings.MEDIA_ROOT)
     fs.save("registros.xlsx", planilha)
 
+    # ------------------------------------------------------
     # Abre planilha com openpyxl
+    # ------------------------------------------------------
     workbook = load_workbook(caminho_planilha)
     sheet = workbook.active
 
+    # ------------------------------------------------------
     # Recupera inventariante vinculado ao usuário logado
+    # ------------------------------------------------------
     inventariante = get_object_or_404(Inventariante, user=request.user)
 
-    # Itera linhas a partir da segunda (ignora cabeçalho)
+    # ------------------------------------------------------
+    # Itera linhas a partir da segunda (linha 1 em branco)
+    # ------------------------------------------------------
     for row in sheet.iter_rows(min_row=2, values_only=True):
         if not any(row):  # ignora linhas totalmente vazias
             continue
 
-        patrimonio_numero, descricao, setor, dependencia, situacao, *rest = row
+        # 🔹 Leitura por índices fixos (colunas da planilha)
+        patrimonio_numero = row[0]   # Coluna A → Tombo
+        descricao = row[1]           # Coluna B → Descrição
+        valor = row[2]               # Coluna C → Valor
+        conta_contabil = row[3]      # Coluna D → Conta Contábil
+        setor = row[4]               # Coluna E → Setor
+        empenho = row[5]             # Coluna F → Empenho
+        fornecedor = row[6]          # Coluna G → Fornecedor
+        numero_documento = row[7]    # Coluna H → Nº Documento
+        data_documento = row[8]      # Coluna I → Data Documento
+        data_ateste = row[9]         # Coluna J → Data Ateste
+        dependencia = row[10]        # Coluna K → Dependência
 
-        # Valida número do patrimônio
+        print("Linha lida:", patrimonio_numero, descricao, valor, conta_contabil,
+              setor, empenho, fornecedor, numero_documento, data_documento,
+              data_ateste, dependencia)  # Debug
+
+        # --------------------------------------------------
+        # Valida número do patrimônio (tombo)
+        # --------------------------------------------------
         try:
             patrimonio_numero = int(patrimonio_numero)
         except (TypeError, ValueError):
             continue
 
+        # --------------------------------------------------
         # Cria registro no banco vinculado ao inventariante
+        # --------------------------------------------------
         Patrimonio.objects.create(
-            patrimonio=patrimonio_numero,
+            tombo=patrimonio_numero,
             descricao=descricao or "",
+            valor=valor or None,
+            conta_contabil=conta_contabil or "",
             setor=setor or "",
+            empenho=empenho or "",
+            fornecedor=fornecedor or "",
+            numero_documento=numero_documento or "",
+            data_documento=data_documento or None,
+            data_ateste=data_ateste or None,
             dependencia=dependencia or "",
-            situacao=situacao or "localizado",
-            inventariante=inventariante
+            inventariante=inventariante,
+            situacao="localizado"  # default
         )
 
-    # Dispara evento HTMX para frontend
-    response = HttpResponse("")
-    response["HX-Trigger"] = "planilhaAtualizada"
+    # ------------------------------------------------------
+    # Após inserir os registros, renderiza a tabela atualizada
+    # ------------------------------------------------------
+    patrimonios = Patrimonio.objects.all().order_by("id")
+    paginator = Paginator(patrimonios, 6)
+    lista_patrimonios = paginator.page(1)
+
+    context = {
+        "pagina": "patrimonio",
+        "lista_patrimonios": lista_patrimonios,
+        "search_query": "",
+        "is_admin": True,
+        "user": request.user,
+    }
+
+    html = render_to_string("app_inventario/partials/tabela_patrimonios.html", context, request=request)
+    response = HttpResponse(html)
+    response["HX-Trigger"] = json.dumps({"planilhaAtualizada": True})
     return response
 
 
 # ==========================================================
-# ATUALIZAÇÃO RÁPIDA DE SITUAÇÃO
+# ATUALIZAÇÃO RÁPIDA DE SITUAÇÃO DE PATRIMÔNIO
+# ----------------------------------------------------------
 # Permite alterar a 'situação' de um patrimônio diretamente
 # na tabela via select (HTMX).
 # ==========================================================
@@ -672,4 +748,3 @@ def upload_planilha_modal(request):
     Retorna o template que contém o formulário do modal.
     """
     return render(request, "app_inventario/upload_planilha.html")
-

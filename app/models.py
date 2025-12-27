@@ -36,20 +36,27 @@ class Inventariante(models.Model):
     def __str__(self):
         """Retorna representação textual do inventariante, exibindo nome e matrícula."""
         return f"{self.user.get_full_name() or self.user.username} ({self.matricula})"
-  
+
 
 class Patrimonio(models.Model):
     """Modelo que representa bens patrimoniais vinculados ao inventário."""
 
-    # Conjunto de opções para indicar a situação do patrimônio.
+    # ==========================================================
+    # CONJUNTO DE OPÇÕES DE SITUAÇÃO
+    # ----------------------------------------------------------
+    # Define os estados possíveis de um patrimônio:
+    # - Localizado
+    # - Não Localizado
+    # - Perda por Calamidade
+    # ==========================================================
     STATUS_CHOICES = [
         ('localizado', 'Localizado'),
         ('nao_localizado', 'Não Localizado'),
         ('calamidade', 'Perda por Calamidade'),
     ]
 
-    # Número identificador único do patrimônio.
-    patrimonio = models.IntegerField('Patrimônio', unique=True)
+    # Número identificador único do patrimônio (tombo).
+    tombo = models.IntegerField('tombo', unique=True, null=True, blank=True)
 
     # Descrição detalhada do bem.
     descricao = models.TextField(blank=True, null=True)
@@ -97,9 +104,15 @@ class Patrimonio(models.Model):
         related_name='patrimonios'
     )
 
+    # ==========================================================
+    # REPRESENTAÇÃO TEXTUAL
+    # ----------------------------------------------------------
+    # Retorna uma string amigável para identificar o patrimônio
+    # exibindo o tombo e o inventariante associado.
+    # ==========================================================
     def __str__(self):
-        """Retorna representação textual do patrimônio, exibindo número e inventariante associado."""
-        return f"{self.patrimonio} ({self.inventariante.user.get_full_name() or self.inventariante.user.username})"
+        return f"{self.tombo} ({self.inventariante.user.get_full_name() or self.inventariante.user.username})"
+
 
 class RegistroPlanilha(models.Model):
     usuario = models.ForeignKey(

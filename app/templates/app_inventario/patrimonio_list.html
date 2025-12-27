@@ -6,7 +6,7 @@
   {# IDENTIFICAÇÃO DO PERFIL DO USUÁRIO LOGADO #}
   {% if is_admin %}
   <p class="text-secondary text-center">
-    Responsável (acesso total):
+    Responsável(acesso total):
     <strong>
       {{ request.user.get_full_name|default:request.user.username }}
     </strong>
@@ -22,21 +22,27 @@
 
   {# CAMPO DE BUSCA COM HTMX #}
   <div class="form-floating mb-3 mt-3">
-    <input type="text" class="form-control" name="q" id="id_busca"
-      placeholder="Buscar Patrimônio (Nº, Descrição, Setor, Dependência...)" value="{{ search_query }}"
-      hx-get="{% url 'patrimonio_list' %}" hx-trigger="keyup changed delay:750ms, search"
-      hx-target="#conteudo-patrimonios" hx-swap="innerHTML" hx-indicator="#loading-indicator" required>
-    <label for="id_busca">Buscar Patrimônio</label>
+    <input type="text" 
+          class="form-control" 
+          name="q" 
+          id="id_busca" 
+          hx-get="{% url 'patrimonio_list' %}"
+          hx-trigger="keyup changed delay:750ms, search" hx-target="#conteudo-patrimonios" hx-swap="innerHTML"
+          hx-indicator="#loading-indicator" required>
+    <label for="id_busca">
+      Buscar Patrimônio por Tombo, Descrição ou Setor:
+    </label>
 
     <span id="loading-indicator" class="spinner-border spinner-border-sm text-success position-absolute end-0 me-3 mt-2"
       role="status" aria-hidden="true" style="display: none;"></span>
   </div>
 
-
   {# BOTÕES DE AÇÃO PRINCIPAIS #}
   <div class="d-flex justify-content-center gap-2 mt-2">
+
     {# Botões exclusivos para administradores #}
     {% if is_admin %}
+
     {# Botão para cadastro manual de patrimônio #}
     <button class="btn btn-sm btn-outline-success w-100" hx-get="{% url 'patrimonio_add' %}"
       hx-target="#modal-patrimonio-body" hx-swap="innerHTML" data-bs-toggle="modal" data-bs-target="#modalPatrimonio">
@@ -63,5 +69,5 @@
 
 {# LISTAGEM DE PATRIMÔNIOS + PAGINAÇÃO #}
 <div id="conteudo-patrimonios" style="overflow-x: auto; width: 100%;">
-  {% include "app_inventario/partials/tabela_e_paginacao.html" %}
+  {% include "app_inventario/partials/tabela_patrimonios.html" %}
 </div>

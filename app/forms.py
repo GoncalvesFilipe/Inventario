@@ -3,12 +3,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import Inventariante, Patrimonio
 
-
-# FORMULÁRIO DE USUÁRIO + INVENTARIANTE (CRIAR / EDITAR)
+# ==========================================================
+# FORMULÁRIO DE USUÁRIO + INVENTARIANTE
+# ----------------------------------------------------------
+# Formulário unificado para criar e editar User + Inventariante.
+# Inclui campos de autenticação e dados adicionais do inventariante.
+# ==========================================================
 class InventarianteUserForm(forms.ModelForm):
-    """
-    Formulário unificado para criar e editar User + Inventariante.
-    """
+    """Formulário unificado para User + Inventariante."""
 
     # -------- Campos do User --------
     username = forms.CharField(label="Usuário")
@@ -17,26 +19,12 @@ class InventarianteUserForm(forms.ModelForm):
     email = forms.EmailField(label="E-mail")
 
     # -------- Campos de Senha --------
-    password1 = forms.CharField(
-        label="Senha",
-        widget=forms.PasswordInput,
-        required=False
-    )
-    password2 = forms.CharField(
-        label="Confirme a Senha",
-        widget=forms.PasswordInput,
-        required=False
-    )
+    password1 = forms.CharField(label="Senha", widget=forms.PasswordInput, required=False)
+    password2 = forms.CharField(label="Confirme a Senha", widget=forms.PasswordInput, required=False)
 
     class Meta:
         model = Inventariante
-        fields = [
-            "matricula",
-            "funcao",
-            "telefone",
-            "presidente",
-            "ano_atuacao",
-        ]
+        fields = ["matricula", "funcao", "telefone", "presidente", "ano_atuacao"]
 
     # ---------------- Inicialização ----------------
     def __init__(self, *args, user=None, **kwargs):
@@ -80,15 +68,10 @@ class InventarianteUserForm(forms.ModelForm):
             raise forms.ValidationError("Já existe um inventariante com esta matrícula.")
 
         return matricula
-    
-    def clean_username(self):
-        """
-        Garante que o username seja único entre usuários.
-        - No cadastro novo, não pode repetir.
-        - Na edição, ignora o próprio usuário.
-        """
-        username = self.cleaned_data.get("username")
 
+    def clean_username(self):
+        """Garante que o username seja único entre usuários."""
+        username = self.cleaned_data.get("username")
         qs = User.objects.filter(username=username)
         if self.user_instance and self.user_instance.pk:
             qs = qs.exclude(pk=self.user_instance.pk)
@@ -101,8 +84,6 @@ class InventarianteUserForm(forms.ModelForm):
     # ---------------- Salvamento ----------------
     def save(self, commit=True):
         inventariante = super().save(commit=False)
-
-        # Se edição, usa o user existente; se novo, cria um User
         user = self.user_instance or User()
 
         # Atualizar dados do User
@@ -123,13 +104,19 @@ class InventarianteUserForm(forms.ModelForm):
         return inventariante
 
 
+# ==========================================================
 # FORMULÁRIO DE PATRIMÔNIO
+# ----------------------------------------------------------
+# Formulário para criar e editar registros de patrimônio.
+# Inclui todos os campos definidos no modelo Patrimonio.
+# ==========================================================
 class PatrimonioForm(forms.ModelForm):
+    """Formulário para o modelo Patrimonio."""
 
     class Meta:
         model = Patrimonio
         fields = [
-            "patrimonio", "descricao", "valor", "conta_contabil",
+            "tombo", "descricao", "valor", "conta_contabil",
             "setor", "empenho", "fornecedor", "numero_documento",
             "data_documento", "data_ateste", "dependencia",
             "situacao", "observacoes", "data_inventario",
@@ -137,21 +124,21 @@ class PatrimonioForm(forms.ModelForm):
         ]
 
         labels = {
-            'patrimonio': 'Número do Patrimônio',
-            'descricao': 'Descrição',
-            'valor': 'Valor',
-            'conta_contabil': 'Conta Contábil',
-            'setor': 'Setor',
-            'empenho': 'Empenho',
-            'fornecedor': 'Fornecedor',
-            'numero_documento': 'Nº do Documento',
-            'data_documento': 'Data do Documento',
-            'data_ateste': 'Data do Ateste',
-            'dependencia': 'Dependência',
-            'situacao': 'Situação',
-            'observacoes': 'Observações',
-            'data_inventario': 'Data do Inventário',
-            'inventariante': 'Inventariante Responsável',
+            "tombo": "Número do Patrimônio",
+            "descricao": "Descrição",
+            "valor": "Valor",
+            "conta_contabil": "Conta Contábil",
+            "setor": "Setor",
+            "empenho": "Empenho",
+            "fornecedor": "Fornecedor",
+            "numero_documento": "Nº do Documento",
+            "data_documento": "Data do Documento",
+            "data_ateste": "Data do Ateste",
+            "dependencia": "Dependência",
+            "situacao": "Situação",
+            "observacoes": "Observações",
+            "data_inventario": "Data do Inventário",
+            "inventariante": "Inventariante Responsável",
         }
 
         widgets = {
